@@ -9,4 +9,13 @@ class BudgetModel extends Budget {
     required super.initialAmount,
     required super.date,
   });
+
+  factory BudgetModel.fromEntity(Budget entity) {
+    return BudgetModel(
+      id: entity.id,
+      description: entity.description,
+      initialAmount: entity.initialAmount,
+      date: entity.date,
+    );
+  }
 }

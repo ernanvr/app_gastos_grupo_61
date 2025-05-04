@@ -1,13 +1,14 @@
 import 'package:app_gastos_grupo_61/src/data/models/budget_model.dart';
+import 'package:app_gastos_grupo_61/src/data/models/budget_with_balance_model.dart';
 import 'package:floor/floor.dart';
 
 @dao
 abstract class BudgetDao {
   @Query('Select * from budget')
-  Future<List<BudgetModel>> getBudgets();
+  Future<List<BudgetWithBalanceModel>> getBudgets();
 
   @Query('Select * from budget WHERE id = :id')
-  Future<BudgetModel> getBudgetById(int id);
+  Future<BudgetWithBalanceModel> getBudgetById(int id);
 
   @insert
   Future<int> insertBudget(BudgetModel budget);
