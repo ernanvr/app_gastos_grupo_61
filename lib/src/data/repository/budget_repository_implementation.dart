@@ -28,6 +28,10 @@ class BudgetRepositoryImplementation implements BudgetRepository {
     try {
       final response = await localDatasource.getBudgetById(id);
 
+      if (response == null) {
+        throw NotFound();
+      }
+
       return right(response);
     } catch (e) {
       return left(LocalDatabaseFailure(message: e.toString(), statusCode: 500));

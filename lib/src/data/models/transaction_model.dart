@@ -1,5 +1,24 @@
+import 'package:app_gastos_grupo_61/src/data/models/budget_model.dart';
+import 'package:app_gastos_grupo_61/src/data/models/category_model.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
+import 'package:floor/floor.dart';
 
+@Entity(
+  tableName: 'transaction',
+  primaryKeys: ['id'],
+  foreignKeys: [
+    ForeignKey(
+      childColumns: ['categoryId'],
+      parentColumns: ['id'],
+      entity: CategoryModel,
+    ),
+    ForeignKey(
+      childColumns: ['budgetId'],
+      parentColumns: ['id'],
+      entity: BudgetModel,
+    ),
+  ],
+)
 class TransactionModel extends Transaction {
   const TransactionModel({
     super.id,

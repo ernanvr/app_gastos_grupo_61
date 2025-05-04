@@ -8,7 +8,7 @@ abstract class BudgetDao {
   Future<List<BudgetWithBalanceModel>> getBudgets();
 
   @Query('Select * from budget WHERE id = :id')
-  Future<BudgetWithBalanceModel> getBudgetById(int id);
+  Future<BudgetWithBalanceModel?> getBudgetById(int id);
 
   @insert
   Future<int> insertBudget(BudgetModel budget);
