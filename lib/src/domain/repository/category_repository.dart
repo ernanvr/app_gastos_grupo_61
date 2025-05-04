@@ -6,11 +6,5 @@ abstract class CategoryRepository {
 
   ResultFuture<List<Category>> getCategories();
 
-  ResultFuture<Category> getCategoryById(int id);
-
   ResultFuture<int> insertCategory(Category category);
-
-  ResultFuture<int> updateCategory(Category category);
-
-  ResultFuture<int> deleteCategory(Category category);
 }

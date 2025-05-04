@@ -8,7 +8,4 @@ abstract class CategoryDao {
 
   @insert
   Future<int> insertCategory(CategoryModel category);
-
-  @delete
-  Future<int> deleteCategory(CategoryModel category);
 }
