@@ -10,4 +10,16 @@ class TransactionModel extends Transaction {
     required super.date,
     required super.isIncome,
   });
+
+  factory TransactionModel.fromEntity(Transaction entity) {
+    return TransactionModel(
+      id: entity.id,
+      categoryId: entity.categoryId,
+      budgetId: entity.budgetId,
+      description: entity.description,
+      amount: entity.amount,
+      date: entity.date,
+      isIncome: entity.isIncome,
+    );
+  }
 }
