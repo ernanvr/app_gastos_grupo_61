@@ -6,6 +6,8 @@ abstract class TransactionRepository {
 
   ResultFuture<List<Transaction>> getTransactions();
 
+  ResultFuture<List<Transaction>> getTransactionsByBudgetId(int id);
+
   ResultFuture<Transaction> getTransactionById(int id);
 
   ResultFuture<int> insertTransaction(Transaction transaction);
