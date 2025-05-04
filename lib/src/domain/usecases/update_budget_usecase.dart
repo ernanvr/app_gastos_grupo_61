@@ -1,19 +1,59 @@
+import 'package:app_gastos_grupo_61/core/errors/failure.dart';
 import 'package:app_gastos_grupo_61/core/helpers/classes.dart';
 import 'package:app_gastos_grupo_61/core/helpers/types.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/budget.dart';
 import 'package:app_gastos_grupo_61/src/domain/repository/budget_repository.dart';
+import 'package:dartz/dartz.dart';
 
-class UpdateBudgetUseCase {
+class UpdateBudgetUseCase extends UseCaseWithParams<int, Budget> {
   final BudgetRepository repository;
 
   UpdateBudgetUseCase(this.repository);
 
-  Future<void> call(Budget budget) async {
-    // Aquí puedes añadir validaciones
-    if (budget.amount < 0) {
-      throw Exception("El monto del presupuesto no puede ser negativo.");
-    }
+  @override
+  ResultFuture<int> call(Budget budget) async {
+    try {
+      if (budget.id == null) {
+        throw ValidationError(
+          message: "El presupuesto debe contar con un id.",
+          statusCode: 400,
+        );
+      }
 
-    await repository.updateBudget(budget);
+      if (budget.initialAmount <= 0) {
+        throw ValidationError(
+          message: "El presupuesto debe ser mayor de cero.",
+          statusCode: 400,
+        );
+      }
+
+      final response = await repository.getBudgetById(budget.id!);
+      final oldBudget = response.fold((f) => throw f, (oldBudget) => oldBudget);
+
+      final newBalanceIsGreaterThanZero =
+          0 >=
+          oldBudget.balance - oldBudget.initialAmount - budget.initialAmount;
+
+      if (!newBalanceIsGreaterThanZero) {
+        throw ValidationError(
+          message: "Balance de presupuesto es menor a cero.",
+          statusCode: 400,
+        );
+      }
+
+      return repository.updateBudget(budget);
+    } catch (e) {
+      if (e is ValidationError) {
+        return left(e);
+      } else if (e is Failure) {
+        return left(e);
+      }
+      return left(
+        Failure(
+          message: 'Un error desconocido ha ocurrido en UpdateBudgetUseCase',
+          statusCode: 400,
+        ),
+      );
+    }
   }
 }
