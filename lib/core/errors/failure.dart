@@ -14,6 +14,10 @@ class ServerException extends Failure {
   const ServerException({required super.message, required super.statusCode});
 }
 
+class ValidationError extends Failure {
+  const ValidationError({required super.message, required super.statusCode});
+}
+
 class LocalDatabaseFailure extends Failure {
   const LocalDatabaseFailure({
     required super.message,
