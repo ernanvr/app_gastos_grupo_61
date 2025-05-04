@@ -5,6 +5,7 @@ class Transaction extends Equatable {
   const Transaction({
     this.id,
     required this.categoryId,
+    required this.budgetId,
     required this.description,
     required this.amount,
     required this.date,
@@ -14,6 +15,7 @@ class Transaction extends Equatable {
   // Propiedades
   final int? id;
   final int categoryId;
+  final int budgetId;
   final String description;
   final double amount;
   final DateTime date;
