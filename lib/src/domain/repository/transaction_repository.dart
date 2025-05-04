@@ -1,14 +1,15 @@
 import 'package:app_gastos_grupo_61/core/helpers/types.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
+import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
 
 abstract class TransactionRepository {
   const TransactionRepository();
 
-  ResultFuture<List<Transaction>> getTransactions();
+  ResultFuture<List<TransactionWithCategory>> getTransactions();
 
-  ResultFuture<List<Transaction>> getTransactionsByBudgetId(int id);
+  ResultFuture<List<TransactionWithCategory>> getTransactionsByBudgetId(int id);
 
-  ResultFuture<Transaction> getTransactionById(int id);
+  ResultFuture<TransactionWithCategory> getTransactionById(int id);
 
   ResultFuture<int> insertTransaction(Transaction transaction);
 
