@@ -13,7 +13,7 @@ class TapTransactionOptionScreen extends StatelessWidget {
           children: [
             _buildOption(
               icon: Icons.add,
-              text: 'Agregar registro',
+              text: 'Editar Registro',
               onTap: () {
                 // Acción para agregar
               },
@@ -21,7 +21,7 @@ class TapTransactionOptionScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildOption(
               icon: Icons.delete,
-              text: 'Eliminar registro',
+              text: 'Eliminar Registro',
               onTap: () {
                 // Accion para Eliminar
               },
