@@ -104,12 +104,12 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `category` (`id` INTEGER, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `transaction` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, `isIncome` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `transactions` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, `isIncome` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`id`))');
 
         await database.execute(
-            'CREATE VIEW IF NOT EXISTS `budget_with_balance` AS   SELECT\n      B.id,\n      B.description,\n      B.initialAmount,\n      B.date,\n      B.initialAmount + COALESCE(SUM(CASE WHEN T.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance\n  FROM\n      budget AS B\n  LEFT JOIN\n      transaction AS T ON B.id = T.budgetId\n  GROUP BY\n      B.id, B.description, B.initialAmount, B.date;\n  ');
+            'CREATE VIEW IF NOT EXISTS `budget_with_balance` AS   SELECT\n      B.id,\n      B.description,\n      B.initialAmount,\n      B.date,\n      B.initialAmount + COALESCE(SUM(CASE WHEN T.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance\n  FROM\n      budget AS B\n  LEFT JOIN\n      transactions AS T ON B.id = T.budgetId\n  GROUP BY\n      B.id, B.description, B.initialAmount, B.date;\n  ');
         await database.execute(
-            'CREATE VIEW IF NOT EXISTS `transaction_with_category` AS   SELECT\n      T.id,\n      T.categoryId,\n      C.name AS categoryName, -- Seleccionamos el nombre de la categoría y lo renombramos\n      T.budgetId,\n      T.description,\n      T.amount,\n      T.date,\n      T.isIncome\n  FROM\n      transaction AS T -- Tabla de transacciones (alias T)\n  INNER JOIN\n      category AS C ON T.categoryId = C.id; -- Unimos con la tabla de categorías (alias C) donde el ID de la categoría coincide con el categoryId de la transacción. Usamos INNER JOIN porque una transacción debe tener una categoría asociada para aparecer en esta vista.\n  ');
+            'CREATE VIEW IF NOT EXISTS `transaction_with_category` AS   SELECT\n      T.id,\n      T.categoryId,\n      C.name AS categoryName, -- Seleccionamos el nombre de la categoría y lo renombramos\n      T.budgetId,\n      T.description,\n      T.amount,\n      T.date,\n      T.isIncome\n  FROM\n      transactions AS T -- Tabla de transacciones (alias T)\n  INNER JOIN\n      category AS C ON T.categoryId = C.id; -- Unimos con la tabla de categorías (alias C) donde el ID de la categoría coincide con el categoryId de la transacción. Usamos INNER JOIN porque una transacción debe tener una categoría asociada para aparecer en esta vista.\n  ');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -229,7 +229,7 @@ class _$TransactionDao extends TransactionDao {
   )   : _queryAdapter = QueryAdapter(database),
         _transactionModelInsertionAdapter = InsertionAdapter(
             database,
-            'transaction',
+            'transactions',
             (TransactionModel item) => <String, Object?>{
                   'id': item.id,
                   'categoryId': item.categoryId,
@@ -241,7 +241,7 @@ class _$TransactionDao extends TransactionDao {
                 }),
         _transactionModelUpdateAdapter = UpdateAdapter(
             database,
-            'transaction',
+            'transactions',
             ['id'],
             (TransactionModel item) => <String, Object?>{
                   'id': item.id,
@@ -254,7 +254,7 @@ class _$TransactionDao extends TransactionDao {
                 }),
         _transactionModelDeletionAdapter = DeletionAdapter(
             database,
-            'transaction',
+            'transactions',
             ['id'],
             (TransactionModel item) => <String, Object?>{
                   'id': item.id,
@@ -282,7 +282,7 @@ class _$TransactionDao extends TransactionDao {
   Future<List<TransactionWithCategoryModel>> getTransactionsByBudgetId(
       int id) async {
     return _queryAdapter.queryList(
-        'Select * from transaction WHERE budgetId = ?1',
+        'Select * from transactions WHERE budgetId = ?1',
         mapper: (Map<String, Object?> row) => TransactionWithCategoryModel(
             id: row['id'] as int?,
             categoryId: row['categoryId'] as int,
