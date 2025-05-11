@@ -4,7 +4,7 @@ import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
 import 'package:floor/floor.dart';
 
 @Entity(
-  tableName: 'transaction',
+  tableName: 'transactions',
   primaryKeys: ['id'],
   foreignKeys: [
     ForeignKey(
@@ -16,6 +16,7 @@ import 'package:floor/floor.dart';
       childColumns: ['budgetId'],
       parentColumns: ['id'],
       entity: BudgetModel,
+      onDelete: ForeignKeyAction.cascade,
     ),
   ],
 )

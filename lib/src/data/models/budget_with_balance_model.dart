@@ -11,7 +11,7 @@ import 'package:floor/floor.dart';
   FROM
       budget AS B
   LEFT JOIN
-      transaction AS T ON B.id = T.budgetId
+      transactions AS T ON B.id = T.budgetId
   GROUP BY
       B.id, B.description, B.initialAmount, B.date;
   ''', viewName: 'budget_with_balance')
