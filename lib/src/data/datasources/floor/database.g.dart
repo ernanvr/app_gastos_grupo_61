@@ -104,7 +104,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `category` (`id` INTEGER, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `transactions` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, `isIncome` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `transactions` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, `isIncome` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
 
         await database.execute(
             'CREATE VIEW IF NOT EXISTS `budget_with_balance` AS   SELECT\n      B.id,\n      B.description,\n      B.initialAmount,\n      B.date,\n      B.initialAmount + COALESCE(SUM(CASE WHEN T.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance\n  FROM\n      budget AS B\n  LEFT JOIN\n      transactions AS T ON B.id = T.budgetId\n  GROUP BY\n      B.id, B.description, B.initialAmount, B.date;\n  ');

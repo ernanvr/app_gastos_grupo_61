@@ -16,6 +16,7 @@ import 'package:floor/floor.dart';
       childColumns: ['budgetId'],
       parentColumns: ['id'],
       entity: BudgetModel,
+      onDelete: ForeignKeyAction.cascade,
     ),
   ],
 )
