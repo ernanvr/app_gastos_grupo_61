@@ -12,7 +12,7 @@ import 'package:floor/floor.dart';
       T.date,
       T.isIncome
   FROM
-      transaction AS T -- Tabla de transacciones (alias T)
+      transactions AS T -- Tabla de transacciones (alias T)
   INNER JOIN
       category AS C ON T.categoryId = C.id; -- Unimos con la tabla de categorías (alias C) donde el ID de la categoría coincide con el categoryId de la transacción. Usamos INNER JOIN porque una transacción debe tener una categoría asociada para aparecer en esta vista.
   ''', viewName: 'transaction_with_category')
