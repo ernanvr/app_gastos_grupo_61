@@ -3,14 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePageScreen extends StatefulWidget {
+  const HomePageScreen({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePageScreen> createState() => _HomePageScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageScreenState extends State<HomePageScreen> {
   @override
   Widget build(BuildContext context) {
     final budget = 25000.0;
