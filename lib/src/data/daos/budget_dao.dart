@@ -4,10 +4,10 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class BudgetDao {
-  @Query('Select * from budget')
+  @Query('Select * from budget_with_balance')
   Future<List<BudgetWithBalanceModel>> getBudgets();
 
-  @Query('Select * from budget WHERE id = :id')
+  @Query('Select * from budget_with_balance WHERE id = :id')
   Future<BudgetWithBalanceModel?> getBudgetById(int id);
 
   @insert

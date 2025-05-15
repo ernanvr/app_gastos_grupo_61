@@ -183,7 +183,7 @@ class _$BudgetDao extends BudgetDao {
 
   @override
   Future<List<BudgetWithBalanceModel>> getBudgets() async {
-    return _queryAdapter.queryList('Select * from budget',
+    return _queryAdapter.queryList('Select * from budget_with_balance',
         mapper: (Map<String, Object?> row) => BudgetWithBalanceModel(
             id: row['id'] as int?,
             description: row['description'] as String,
@@ -194,7 +194,8 @@ class _$BudgetDao extends BudgetDao {
 
   @override
   Future<BudgetWithBalanceModel?> getBudgetById(int id) async {
-    return _queryAdapter.query('Select * from budget WHERE id = ?1',
+    return _queryAdapter.query(
+        'Select * from budget_with_balance WHERE id = ?1',
         mapper: (Map<String, Object?> row) => BudgetWithBalanceModel(
             id: row['id'] as int?,
             description: row['description'] as String,
@@ -282,7 +283,7 @@ class _$TransactionDao extends TransactionDao {
   Future<List<TransactionWithCategoryModel>> getTransactionsByBudgetId(
       int id) async {
     return _queryAdapter.queryList(
-        'Select * from transactions WHERE budgetId = ?1',
+        'Select * from transaction_with_category WHERE budgetId = ?1',
         mapper: (Map<String, Object?> row) => TransactionWithCategoryModel(
             id: row['id'] as int?,
             categoryId: row['categoryId'] as int,

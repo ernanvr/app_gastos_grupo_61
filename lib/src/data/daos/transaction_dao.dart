@@ -4,7 +4,7 @@ import 'package:floor/floor.dart';
 
 @dao
 abstract class TransactionDao {
-  @Query('Select * from transactions WHERE budgetId = :id')
+  @Query('Select * from transaction_with_category WHERE budgetId = :id')
   Future<List<TransactionWithCategoryModel>> getTransactionsByBudgetId(int id);
 
   @insert
