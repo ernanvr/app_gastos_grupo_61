@@ -1,8 +1,10 @@
 import 'dart:developer' show log;
 
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
+import 'package:app_gastos_grupo_61/src/presentation/pages/create_budget_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/error_screen.dart';
-import 'package:app_gastos_grupo_61/src/presentation/pages/homePage/home_page_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/pages/home_page_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/pages/home_page_no_content_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/splash_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +20,7 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: 'home',
           name: 'home',
-          builder: (context, state) => HomePage(),
+          builder: (context, state) => HomePageScreen(),
           routes: [
             GoRoute(
               path: 'new-transaction',
@@ -49,9 +51,16 @@ final GoRouter router = GoRouter(
           ],
         ),
         GoRoute(
-          path: 'new-budget',
-          name: 'new-budget',
-          builder: (context, state) => HomePage(),
+          path: 'home-no-content',
+          name: 'home-no-content',
+          builder: (context, state) => HomePageNoContentScreen(),
+          routes: [
+            GoRoute(
+              path: 'new-budget',
+              name: 'new-budget',
+              builder: (context, state) => CreateBudgetScreen(),
+            ),
+          ],
         ),
       ],
     ),
