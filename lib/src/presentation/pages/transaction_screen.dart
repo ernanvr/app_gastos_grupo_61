@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../../domain/entities/transaction.dart';
+import '../../domain/entities/transaction.dart';
 
-
-class UpdateTransactionScreen extends StatefulWidget {
+class TransactionScreen extends StatefulWidget {
   final Transaction? transaction;
 
-  const UpdateTransactionScreen({super.key, this.transaction});
+  const TransactionScreen({super.key, this.transaction});
 
   @override
-  State<UpdateTransactionScreen> createState() => _UpdateTransactionScreenState();
+  State<TransactionScreen> createState() => _TransactionScreenState();
 }
 
-class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
+class _TransactionScreenState extends State<TransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
@@ -23,7 +22,7 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
   final List<String> _categories = ['Comida', 'Transporte', 'Salario', 'Otros'];
   final List<String> _types = ['Ingreso', 'Gasto'];
 
- /* Para cuando este listo el BLOC:
+  /* Para cuando este listo el BLOC:
   @override
   void initState() {
     super.initState();
@@ -65,8 +64,6 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
   }
 */
 
-
-
   @override
   Widget build(BuildContext context) {
     const primaryColor = Color(0xFF3F37C9);
@@ -90,7 +87,9 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.transaction == null ? 'Crear Transacción' : 'Editar Transacción',
+                widget.transaction == null
+                    ? 'Crear Transacción'
+                    : 'Editar Transacción',
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -102,8 +101,11 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
                 controller: _nameController,
                 label: 'Nombre de la Transacción',
                 hint: 'Escriba una descripción',
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Este campo es obligatorio' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Este campo es obligatorio'
+                            : null,
               ),
               _buildTextField(
                 controller: _amountController,
@@ -129,11 +131,14 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
                     lastDate: DateTime(2100),
                   );
                   if (picked != null) {
-                    _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
+                    _dateController.text = DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(picked);
                   }
                 },
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Seleccione una fecha';
+                  if (value == null || value.isEmpty)
+                    return 'Seleccione una fecha';
                   try {
                     DateFormat('dd/MM/yyyy').parseStrict(value);
                     return null;
@@ -168,10 +173,13 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
                     ),
                     elevation: 6,
                   ),
-                  onPressed: () {},//_saveTransaction,
+                  onPressed: () {}, //_saveTransaction,
                   child: Text(
                     'Guardar',
-                    style: GoogleFonts.poppins(fontSize: 18, color: Colors.white),
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -232,11 +240,13 @@ class _UpdateTransactionScreenState extends State<UpdateTransactionScreen> {
           borderSide: const BorderSide(color: Color(0xFF3F37C9)),
         ),
       ),
-      items: items
-          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-          .toList(),
+      items:
+          items
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
       onChanged: onChanged,
-      validator: (val) => val == null || val.isEmpty ? 'Seleccione una opción' : null,
+      validator:
+          (val) => val == null || val.isEmpty ? 'Seleccione una opción' : null,
     );
   }
 }

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:app_gastos_grupo_61/src/presentation/pages/updateTransaction/update_transaction_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final budget = 25000.0;
@@ -30,11 +35,9 @@ class HomePage extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const UpdateTransactionScreen(), 
-            ),
+            MaterialPageRoute(builder: (context) => const TransactionScreen()),
           );
-          },
+        },
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
           'Agregar registro',
@@ -72,10 +75,26 @@ class HomePage extends StatelessWidget {
                   child: PieChart(
                     PieChartData(
                       sections: [
-                        PieChartSectionData(value: 25, color: Color(0xFFABC4FF), title: '25%'),
-                        PieChartSectionData(value: 29, color: Color(0xFF4CC9F0), title: '29%'),
-                        PieChartSectionData(value: 31, color: Color(0xFF7209B7), title: '31%'),
-                        PieChartSectionData(value: 15, color: Color(0xFF4895EF), title: '15%'),
+                        PieChartSectionData(
+                          value: 25,
+                          color: Color(0xFFABC4FF),
+                          title: '25%',
+                        ),
+                        PieChartSectionData(
+                          value: 29,
+                          color: Color(0xFF4CC9F0),
+                          title: '29%',
+                        ),
+                        PieChartSectionData(
+                          value: 31,
+                          color: Color(0xFF7209B7),
+                          title: '31%',
+                        ),
+                        PieChartSectionData(
+                          value: 15,
+                          color: Color(0xFF4895EF),
+                          title: '15%',
+                        ),
                       ],
                       sectionsSpace: 2,
                       centerSpaceRadius: 40,
@@ -200,7 +219,10 @@ class HomePage extends StatelessWidget {
                           ),
                           child: const Padding(
                             padding: EdgeInsets.all(8),
-                            child: Icon(Icons.attach_money, color: Colors.white),
+                            child: Icon(
+                              Icons.attach_money,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
