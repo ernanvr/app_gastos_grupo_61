@@ -7,3 +7,10 @@ abstract class UseCaseWithParams<ReturnType, Params> {
 abstract class UseCaseWithoutParams<Type> {
   ResultFuture<Type> call();
 }
+
+class PieChartValue {
+  String categoryName;
+  int qty;
+
+  PieChartValue(this.categoryName, this.qty);
+}

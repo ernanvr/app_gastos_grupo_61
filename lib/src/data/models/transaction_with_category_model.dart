@@ -20,7 +20,7 @@ class TransactionWithCategoryModel extends TransactionWithCategory {
   const TransactionWithCategoryModel({
     super.id,
     required super.categoryId,
-    super.categoryName,
+    required super.categoryName,
     required super.budgetId,
     required super.description,
     required super.amount,

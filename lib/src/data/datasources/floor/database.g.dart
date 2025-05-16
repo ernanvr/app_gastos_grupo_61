@@ -287,7 +287,7 @@ class _$TransactionDao extends TransactionDao {
         mapper: (Map<String, Object?> row) => TransactionWithCategoryModel(
             id: row['id'] as int?,
             categoryId: row['categoryId'] as int,
-            categoryName: row['categoryName'] as String?,
+            categoryName: row['categoryName'] as String,
             budgetId: row['budgetId'] as int,
             description: row['description'] as String,
             amount: row['amount'] as double,

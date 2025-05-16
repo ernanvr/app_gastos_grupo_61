@@ -20,10 +20,13 @@ class BudgetCubit extends Cubit<BudgetState> {
             errorMessage: failure.message,
           ),
         ),
-        (budgets) => emit(state.copyWith(
+        (budgets) => emit(
+          state.copyWith(
             status: BudgetStatus.loaded,
             budgets: budgets,
-            selectedBudget: budgets.isNotEmpty ? budgets.first : null)),
+            selectedBudget: budgets.isNotEmpty ? budgets.first : null,
+          ),
+        ),
       );
     } catch (e) {
       emit(
