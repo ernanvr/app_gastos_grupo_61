@@ -1,6 +1,6 @@
 import 'dart:developer' show log;
 
-import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
+import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/create_budget_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/error_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/home_page_screen.dart';
@@ -33,7 +33,7 @@ final GoRouter router = GoRouter(
               builder: (context, state) {
                 final extra = state.extra;
 
-                if (extra == null || extra is! Transaction) {
+                if (extra == null || extra is! TransactionWithCategory) {
                   log(
                     'Error de ruta: La ruta /home/update-transaction requiere un objeto Transaction como extra.',
                   );
@@ -43,7 +43,7 @@ final GoRouter router = GoRouter(
                   );
                 }
 
-                final transaction = state.extra as Transaction?;
+                final transaction = state.extra as TransactionWithCategory?;
 
                 return TransactionScreen(transaction: transaction);
               },

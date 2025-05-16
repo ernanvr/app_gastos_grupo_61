@@ -14,6 +14,7 @@ class HomePageNoContentScreen extends StatelessWidget {
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: primaryColor,
+        automaticallyImplyLeading: false, // Remove back arrow
         title: Text(
           'Control de gastos',
           style: GoogleFonts.poppins(
