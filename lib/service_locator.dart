@@ -68,7 +68,14 @@ Future<void> setupLocator() async {
   sl.registerLazySingleton(() => UpdateTransactionUseCase(repository: sl()));
 
   // Blocs / Cubits
-  sl.registerFactory(() => BudgetCubit(sl()));
+  sl.registerFactory(
+    () => BudgetCubit(
+      sl(), // GetBudgetsUsecase
+      sl(), // InsertBudgetUsecase
+      sl(), // UpdateBudgetUseCase
+      sl(), // DeleteBudgetUsecase
+    ),
+  );
   sl.registerFactory(() => CategoryCubit(sl()));
   sl.registerFactory(() => TransactionCubit(sl()));
 }

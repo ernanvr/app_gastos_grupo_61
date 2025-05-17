@@ -1,18 +1,29 @@
 import 'package:app_gastos_grupo_61/src/domain/entities/budget.dart';
-import 'package:app_gastos_grupo_61/src/domain/repository/budget_repository.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/delete_budget_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/get_budgets_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/insert_budget_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/update_budget_usecase.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'budget_state.dart'; // Assuming your state file is named this
 
 class BudgetCubit extends Cubit<BudgetState> {
-  BudgetCubit(this._budgetRepository) : super(const BudgetState());
+  BudgetCubit(
+    this._getBudgetsUsecase,
+    this._insertBudgetUsecase,
+    this._updateBudgetUseCase,
+    this._deleteBudgetUsecase,
+  ) : super(const BudgetState());
 
-  final BudgetRepository _budgetRepository;
+  final GetBudgetsUsecase _getBudgetsUsecase;
+  final InsertBudgetUsecase _insertBudgetUsecase;
+  final UpdateBudgetUseCase _updateBudgetUseCase;
+  final DeleteBudgetUsecase _deleteBudgetUsecase;
 
   Future<void> loadBudgets() async {
     try {
       emit(state.copyWith(status: BudgetStatus.loading));
-      final budgets = await _budgetRepository.getBudgets();
+      final budgets = await _getBudgetsUsecase();
       budgets.fold(
         (failure) => emit(
           state.copyWith(
@@ -39,10 +50,8 @@ class BudgetCubit extends Cubit<BudgetState> {
     try {
       emit(state.copyWith(status: BudgetStatus.loading));
       // Assuming an InsertBudgetUseCase exists and is available through the repository or injected
-      // Since use cases are not explicitly in the cubit's constructor,
-      // I will simulate calling them via the repository for now.
       // Ideally, cubits depend on use cases, not repositories directly.
-      final result = await _budgetRepository.insertBudget(budget);
+      final result = await _insertBudgetUsecase(budget);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -65,8 +74,7 @@ class BudgetCubit extends Cubit<BudgetState> {
   Future<void> editBudget(Budget budget) async {
     try {
       emit(state.copyWith(status: BudgetStatus.loading));
-      // Assuming an UpdateBudgetUseCase exists
-      final result = await _budgetRepository.updateBudget(budget);
+      final result = await _updateBudgetUseCase(budget);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -92,7 +100,7 @@ class BudgetCubit extends Cubit<BudgetState> {
       // Assuming a DeleteBudgetUsecase exists.
       // The responsibility of deleting associated transactions should be handled
       // within the domain layer (e.g., the Usecase or Repository implementation).
-      final result = await _budgetRepository.deleteBudget(budget);
+      final result = await _deleteBudgetUsecase(budget);
       result.fold(
         (failure) => emit(
           state.copyWith(
