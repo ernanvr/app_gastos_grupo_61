@@ -95,19 +95,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
       // Use the Cubit to add or update the transaction
       if (widget.transaction == null) {
         // Adding a new transaction
-        context.read<TransactionCubit>().insertTransaction(
-          newTransaction,
-          widget.budgetId!,
-        );
+        context.read<TransactionCubit>().insertTransaction(newTransaction);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Transacción creada exitosamente!')),
         );
       } else {
         // Updating an existing transaction
-        context.read<TransactionCubit>().updateTransaction(
-          newTransaction,
-          widget.budgetId!,
-        );
+        context.read<TransactionCubit>().updateTransaction(newTransaction);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Transacción actualizada exitosamente!'),
