@@ -1,13 +1,14 @@
 import 'package:app_gastos_grupo_61/core/helpers/constants.dart';
+import 'package:app_gastos_grupo_61/core/utils/format_currency.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_state.dart'; // Import BudgetState
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/transaction_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart'; // Import for date formatting
 
 class HomePageScreen extends StatefulWidget {
   const HomePageScreen({super.key});
@@ -29,13 +30,6 @@ class _HomePageScreenState extends State<HomePageScreen> {
         budgetState.selectedBudget!.id!,
       );
     }
-  }
-
-  // Format currency using a simple method or a package like intl
-  String formatCurrency(double amount) {
-    // Use appropriate locale, e.g., 'en_US' for $
-    final formatter = NumberFormat.simpleCurrency(locale: 'en_US');
-    return formatter.format(amount);
   }
 
   @override
@@ -116,23 +110,23 @@ class _HomePageScreenState extends State<HomePageScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Resumen de gastos',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF14181B),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Su actividad reciente se divide en:',
-                          style: GoogleFonts.nunito(
-                            color: const Color(0xFF95A1AC),
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
+                        // Text(
+                        //   'Resumen de gastos',
+                        //   style: GoogleFonts.poppins(
+                        //     fontSize: 20,
+                        //     fontWeight: FontWeight.bold,
+                        //     color: const Color(0xFF14181B),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 4),
+                        // Text(
+                        //   'Su actividad reciente se divide en:',
+                        //   style: GoogleFonts.nunito(
+                        //     color: const Color(0xFF95A1AC),
+                        //     fontSize: 14,
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 16),
                         SizedBox(
                           height: 200,
                           child:
@@ -191,10 +185,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                                         fontSize: 12,
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        color: Colors.white,
+                                                        color: Colors.black,
                                                       ),
                                                   titlePositionPercentageOffset:
-                                                      1.5, // Adjust title position to avoid overlapping with pie chart
+                                                      1.55, // Adjust title position to avoid overlapping with pie chart
                                                   badgeWidget: Text(
                                                     // Add category name as a badge
                                                     pieValue.categoryName,
@@ -240,17 +234,17 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               // Display initial budget amount
                               formatCurrency(budgetAmount),
                               style: GoogleFonts.poppins(
-                                fontSize: 28,
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
                             const SizedBox(width: 8),
                             // TODO: Display budget period (e.g., Mensual) from the budget entity
-                            Text(
-                              'Mensual', // Placeholder
-                              style: GoogleFonts.nunito(color: Colors.white),
-                            ),
+                            // Text(
+                            //   'Mensual', // Placeholder
+                            //   style: GoogleFonts.nunito(color: Colors.white),
+                            // ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -330,102 +324,8 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               itemBuilder: (context, index) {
                                 final transaction =
                                     transactionState.transactions[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Card(
-                                          color:
-                                              transaction.isIncome
-                                                  ? Colors
-                                                      .green // Color for income
-                                                  : const Color(
-                                                    0xFF4895EF,
-                                                  ), // Color for expense
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8),
-                                            child: Icon(
-                                              transaction.isIncome
-                                                  ? Icons.add
-                                                  : Icons.remove,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                transaction.description,
-                                                style: GoogleFonts.poppins(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                transaction.categoryName,
-                                                style: GoogleFonts.nunito(
-                                                  color: const Color(
-                                                    0xFF95A1AC,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              // Display transaction amount
-                                              formatCurrency(
-                                                transaction.amount,
-                                              ),
-                                              style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    transaction.isIncome
-                                                        ? Colors.green
-                                                        : Colors
-                                                            .redAccent, // Color based on type
-                                              ),
-                                            ),
-                                            Text(
-                                              // Display formatted date and time
-                                              DateFormat(
-                                                'E. d, HH:mm',
-                                              ).format(transaction.date),
-                                              style: GoogleFonts.nunito(
-                                                color: const Color(0xFF95A1AC),
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                return TransactionCardWidget(
+                                  transaction: transaction,
                                 );
                               },
                             ),
