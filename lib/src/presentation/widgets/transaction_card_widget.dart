@@ -1,8 +1,9 @@
 import 'package:app_gastos_grupo_61/core/utils/format_currency.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/delete_confirmation_message_widget.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/tap_transaction_options_widget.dart'; // Import the new widget
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -18,75 +19,39 @@ class TransactionCardWidget extends StatelessWidget {
 
   // Mostrar opciones de la transacción
   void _showTransactionOptions(BuildContext context) {
-    final titulo = transaction.description;
-
-    showDialog(
+    // Replace showDialog with showModalBottomSheet
+    showModalBottomSheet(
       context: context,
+      isScrollControlled:
+          true, // Allows the bottom sheet to take full height if needed
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text('Opciones para "$titulo"'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.edit),
-                title: Text('Editar Registro'),
-                onTap: () {
-                  // Navigate to the update-transaction route, passing the transaction object
-                  Navigator.pop(context); // Close the AlertDialog
-                  GoRouter.of(context).pushNamed(
-                    'update-transaction',
-                    extra: transaction, // Pass the current transaction object
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete),
-                title: Text('Eliminar Registro'),
-                onTap: () {
-                  //Do something else?
-                  Navigator.pop(context);
-                  _confirmDelete(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.cancel),
-                title: Text('Cancelar'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
+        // Return the TapTransactionOptionsWidget
+        return TapTransactionOptionsWidget(
+          transaction: transaction, // Pass the transaction object
+          onTapDelete:
+              () => _confirmDelete(
+                context,
+              ), // Pass a function that calls _confirmDelete
         );
       },
     );
   }
 
-  // Confirmar antes de eliminar
+  // Confirmar antes de eliminar - This method remains the same
   void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: Text('Confirmar eliminación'),
-            content: Text(
-              '¿Estás seguro de que deseas eliminar esta transacción?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () {
-                  onDelete(transaction);
-                },
-                child: Text('Eliminar'),
-              ),
-            ],
-          ),
+      builder: (BuildContext context) {
+        return DeleteConfirmationMessageWidget(
+          onCancel: () => Navigator.pop(context),
+          onConfirm: () {
+            Navigator.pop(context); // Close the confirmation dialog
+            onDelete(
+              transaction,
+            ); // Call the actual onDelete callback from the parent
+          },
+        );
+      },
     );
   }
 

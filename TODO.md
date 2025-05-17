@@ -1,5 +1,5 @@
 - [x] Implementar Editar transacción
-- [ ] Implementar Eliminar transacción
+- [x] Implementar Eliminar transacción
 - [ ] Implementar Editar presupuesto
 - [ ] Implementar Eliminar presupuesto
 - [x] Cambiar la estructura de los cubits, para usar los usecases en vez de los repositories
