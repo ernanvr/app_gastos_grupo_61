@@ -326,6 +326,11 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                     transactionState.transactions[index];
                                 return TransactionCardWidget(
                                   transaction: transaction,
+                                  onDelete: (t) {
+                                    context
+                                        .read<TransactionCubit>()
+                                        .deleteTransaction(t);
+                                  },
                                 );
                               },
                             ),
