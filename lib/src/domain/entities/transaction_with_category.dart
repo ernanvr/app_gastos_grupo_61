@@ -13,4 +13,15 @@ class TransactionWithCategory extends Transaction {
     required super.date,
     required super.isIncome,
   });
+
+  @override
+  List<Object?> get props => [
+    id,
+    categoryId,
+    categoryName,
+    description,
+    amount,
+    date,
+    isIncome,
+  ];
 }

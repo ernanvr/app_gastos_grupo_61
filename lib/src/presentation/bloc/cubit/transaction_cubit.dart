@@ -25,12 +25,30 @@ class TransactionCubit extends Cubit<TransactionState> {
             errorMessage: failure.message,
           ),
         ),
-        (transactions) => emit(
-          state.copyWith(
-            status: TransactionStatus.loaded,
-            transactions: transactions,
-          ),
-        ),
+        (transactions) {
+          Map<String, int> categoryCounts = {};
+
+          for (final transaction in transactions) {
+            // Assuming TransactionWithCategory has a 'category' field with a 'name' property
+            final categoryName = transaction.categoryName;
+            categoryCounts[categoryName] =
+                (categoryCounts[categoryName] ?? 0) + 1;
+          }
+
+          // Convert the map to a List of PieChartValues objects
+          final List<PieChartValue> pieChartValues =
+              categoryCounts.entries.map((entry) {
+                return PieChartValue(entry.key, entry.value);
+              }).toList();
+
+          emit(
+            state.copyWith(
+              status: TransactionStatus.loaded,
+              transactions: transactions,
+              pieChartValues: pieChartValues,
+            ),
+          );
+        },
       );
     } catch (e) {
       emit(
@@ -116,45 +134,6 @@ class TransactionCubit extends Cubit<TransactionState> {
           loadTransactionsByBudgetId(budgetId);
         },
       );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: TransactionStatus.error,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> generatePieChartValues() async {
-    try {
-      // Ensure transactions are loaded and not empty
-      if (state.status != TransactionStatus.loaded ||
-          state.transactions.isEmpty) {
-        // If no transactions or state not loaded, set empty list and return
-        emit(
-          state.copyWith(pieChartValues: <PieChartValue>[]),
-        ); // Assuming pieChartValues is a field in TransactionState of type List<PieChartValues>
-        return;
-      }
-
-      final Map<String, int> categoryCounts = {};
-
-      for (final transaction in state.transactions) {
-        // Assuming TransactionWithCategory has a 'category' field with a 'name' property
-        final categoryName = transaction.categoryName;
-        categoryCounts[categoryName] = (categoryCounts[categoryName] ?? 0) + 1;
-      }
-
-      // Convert the map to a List of PieChartValues objects
-      final List<PieChartValue> pieChartValues =
-          categoryCounts.entries.map((entry) {
-            return PieChartValue(entry.key, entry.value);
-          }).toList();
-
-      emit(
-        state.copyWith(pieChartValues: pieChartValues),
-      ); // Assuming pieChartValues is a field in TransactionState of type List<PieChartValues>
     } catch (e) {
       emit(
         state.copyWith(

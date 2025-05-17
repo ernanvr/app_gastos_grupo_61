@@ -104,6 +104,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   .fold(0.0, (sum, t) => sum + t.amount);
 
               // Calculate remaining
+
               final remaining = budgetAmount - totalSpent;
 
               return Column(
