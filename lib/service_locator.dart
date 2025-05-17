@@ -1,3 +1,4 @@
+import 'package:app_gastos_grupo_61/src/domain/usecases/delete_transaction_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:app_gastos_grupo_61/src/data/datasources/floor/database.dart';
 import 'package:app_gastos_grupo_61/src/data/repository/budget_repository_implementation.dart';
@@ -66,6 +67,7 @@ Future<void> setupLocator() async {
   sl.registerLazySingleton(() => InsertTransactionUseCase(repository: sl()));
   sl.registerLazySingleton(() => UpdateBudgetUseCase(sl()));
   sl.registerLazySingleton(() => UpdateTransactionUseCase(repository: sl()));
+  sl.registerLazySingleton(() => DeleteTransactionUsecase(repository: sl()));
 
   // Blocs / Cubits
   sl.registerFactory(
@@ -77,5 +79,12 @@ Future<void> setupLocator() async {
     ),
   );
   sl.registerFactory(() => CategoryCubit(sl()));
-  sl.registerFactory(() => TransactionCubit(sl()));
+  sl.registerFactory(
+    () => TransactionCubit(
+      sl(), // GetTransactionsByBudgetIdUsecase
+      sl(), // InsertTransactionUseCase
+      sl(), // UpdateTransactionUseCase
+      sl(), // DeleteTransactionUsecase
+    ),
+  );
 }

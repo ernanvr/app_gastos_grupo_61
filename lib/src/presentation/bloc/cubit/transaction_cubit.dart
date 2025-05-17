@@ -1,6 +1,9 @@
 import 'package:app_gastos_grupo_61/core/helpers/classes.dart';
 
-import 'package:app_gastos_grupo_61/src/domain/repository/transaction_repository.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/delete_transaction_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/get_transactions_by_budget_id_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/insert_transaction_usecase.dart';
+import 'package:app_gastos_grupo_61/src/domain/usecases/update_transaction_usecase.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
@@ -8,16 +11,24 @@ import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
 import 'transaction_state.dart'; // Assuming your state file is named this
 
 class TransactionCubit extends Cubit<TransactionState> {
-  TransactionCubit(this._transactionRepository)
-    : super(const TransactionState());
+  TransactionCubit(
+    this._getTransactionsByBudgetIdUsecase,
+    this._insertTransactionUseCase,
+    this._updateTransactionUseCase,
+    this._deleteTransactionUsecase,
+  ) : super(const TransactionState());
 
-  final TransactionRepository _transactionRepository;
+  final GetTransactionsByBudgetIdUsecase _getTransactionsByBudgetIdUsecase;
+  final InsertTransactionUseCase _insertTransactionUseCase;
+  final UpdateTransactionUseCase _updateTransactionUseCase;
+  final DeleteTransactionUsecase _deleteTransactionUsecase;
 
   Future<void> loadTransactionsByBudgetId(int budgetId) async {
     try {
       emit(state.copyWith(status: TransactionStatus.loading));
-      final transactionsResult = await _transactionRepository
-          .getTransactionsByBudgetId(budgetId);
+      final transactionsResult = await _getTransactionsByBudgetIdUsecase(
+        budgetId,
+      );
       transactionsResult.fold(
         (failure) => emit(
           state.copyWith(
@@ -60,12 +71,10 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<void> insertTransaction(Transaction transaction, int budgetId) async {
+  Future<void> insertTransaction(Transaction transaction) async {
     try {
       emit(state.copyWith(status: TransactionStatus.loading));
-      final result = await _transactionRepository.insertTransaction(
-        transaction,
-      );
+      final result = await _insertTransactionUseCase(transaction);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -75,7 +84,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         ),
         (_) {
           // On successful insertion, reload transactions for the current budget
-          loadTransactionsByBudgetId(budgetId);
+          loadTransactionsByBudgetId(transaction.budgetId);
         },
       );
     } catch (e) {
@@ -88,12 +97,10 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<void> updateTransaction(Transaction transaction, int budgetId) async {
+  Future<void> updateTransaction(Transaction transaction) async {
     try {
       emit(state.copyWith(status: TransactionStatus.loading));
-      final result = await _transactionRepository.updateTransaction(
-        transaction,
-      );
+      final result = await _updateTransactionUseCase(transaction);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -103,7 +110,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         ),
         (_) {
           // On successful update, reload transactions for the current budget
-          loadTransactionsByBudgetId(budgetId);
+          loadTransactionsByBudgetId(transaction.budgetId);
         },
       );
     } catch (e) {
@@ -116,12 +123,10 @@ class TransactionCubit extends Cubit<TransactionState> {
     }
   }
 
-  Future<void> deleteTransaction(Transaction transaction, int budgetId) async {
+  Future<void> deleteTransaction(Transaction transaction) async {
     try {
       emit(state.copyWith(status: TransactionStatus.loading));
-      final result = await _transactionRepository.deleteTransaction(
-        transaction,
-      );
+      final result = await _deleteTransactionUsecase(transaction);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -131,7 +136,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         ),
         (_) {
           // On successful deletion, reload transactions for the current budget
-          loadTransactionsByBudgetId(budgetId);
+          loadTransactionsByBudgetId(transaction.budgetId);
         },
       );
     } catch (e) {
