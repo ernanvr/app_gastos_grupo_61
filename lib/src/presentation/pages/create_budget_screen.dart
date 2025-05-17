@@ -1,3 +1,4 @@
+import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Importa flutter_bloc
 import 'package:google_fonts/google_fonts.dart';
@@ -60,9 +61,26 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       // GoRouter pop() es la forma de regresar con go_router
       context.replaceNamed('home');
 
-      // Opcional: Mostrar un mensaje de éxito al usuario
+      // Get a reference to the ScaffoldMessengerState
+      final messenger = ScaffoldMessenger.of(context);
+
+      // Show the custom success notification
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Presupuesto creado exitosamente!')),
+        SnackBar(
+          content: SuccessNotificationWidget(
+            title: 'Presupuesto Creado',
+            message:
+                'El presupuesto "${newBudget.description}" ha sido creado exitosamente.',
+            onClose: () => messenger.hideCurrentSnackBar(),
+          ),
+          backgroundColor:
+              Colors.transparent, // Make SnackBar background transparent
+          elevation: 0, // Remove shadow
+          duration: const Duration(
+            seconds: 4,
+          ), // How long the notification is visible
+          behavior: SnackBarBehavior.floating, // Make it float above the bottom
+        ),
       );
     }
   }

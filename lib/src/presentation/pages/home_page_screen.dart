@@ -4,6 +4,7 @@ import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_state.dart'; // Import BudgetState
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/transaction_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -330,6 +331,28 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                     context
                                         .read<TransactionCubit>()
                                         .deleteTransaction(t);
+                                    // Get a reference to the ScaffoldMessengerState
+                                    final messenger = ScaffoldMessenger.of(
+                                      context,
+                                    );
+                                    // Show success notification after calling delete
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: SuccessNotificationWidget(
+                                          title: 'Registro Eliminado',
+                                          message:
+                                              'La transacción "${t.description}" ha sido eliminada exitosamente.',
+                                          onClose:
+                                              () =>
+                                                  messenger
+                                                      .hideCurrentSnackBar(),
+                                        ),
+                                        backgroundColor: Colors.transparent,
+                                        elevation: 0,
+                                        duration: const Duration(seconds: 4),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
                                   },
                                 );
                               },

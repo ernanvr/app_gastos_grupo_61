@@ -1,5 +1,6 @@
 - [x] Implementar Editar transacción
 - [x] Implementar Eliminar transacción
+- [x] Implementar SuccessNotificationWidget
 - [ ] Implementar Editar presupuesto
 - [ ] Implementar Eliminar presupuesto
 - [x] Cambiar la estructura de los cubits, para usar los usecases en vez de los repositories

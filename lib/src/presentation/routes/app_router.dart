@@ -45,7 +45,7 @@ final GoRouter router = GoRouter(
 
                 final transaction = state.extra as TransactionWithCategory?;
 
-                return TransactionScreen(transaction: transaction);
+                return TransactionScreen(transaction: transaction, budgetId: transaction?.budgetId);
               },
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -74,11 +75,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
       // Find the selected category ID based on the name
       final selectedCategory = _availableCategories.firstWhere(
         (cat) => cat.name == _selectedCategoryName,
-        // orElse:
-        //     () => Category(
-        //       id: 0,
-        //       name: _selectedCategoryName ?? 'Otros',
-        //     ), // Fallback
       );
 
       final newTransaction = Transaction(
@@ -96,15 +92,43 @@ class _TransactionScreenState extends State<TransactionScreen> {
       if (widget.transaction == null) {
         // Adding a new transaction
         context.read<TransactionCubit>().insertTransaction(newTransaction);
+        // Get a reference to the ScaffoldMessengerState
+        final messenger = ScaffoldMessenger.of(context);
+
+        // Show success notification for creation
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transacción creada exitosamente!')),
+          SnackBar(
+            content: SuccessNotificationWidget(
+              title: 'Transacción Creada',
+              message:
+                  'La transacción "${newTransaction.description}" ha sido creada exitosamente.',
+              onClose: () => messenger.hideCurrentSnackBar(),
+            ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } else {
         // Updating an existing transaction
         context.read<TransactionCubit>().updateTransaction(newTransaction);
+        // Get a reference to the ScaffoldMessengerState
+        final messenger = ScaffoldMessenger.of(context);
+
+        // Show success notification for creation
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transacción actualizada exitosamente!'),
+          SnackBar(
+            content: SuccessNotificationWidget(
+              title: 'Transacción Creada',
+              message:
+                  'La transacción "${newTransaction.description}" ha sido creada exitosamente.',
+              onClose: () => messenger.hideCurrentSnackBar(),
+            ),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
