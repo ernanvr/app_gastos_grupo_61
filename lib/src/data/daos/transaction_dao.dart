@@ -15,4 +15,7 @@ abstract class TransactionDao {
 
   @delete
   Future<int> deleteTransaction(TransactionModel transaction);
+
+  @delete
+  Future<int> deleteTransactions(List<TransactionModel> transactions);
 }

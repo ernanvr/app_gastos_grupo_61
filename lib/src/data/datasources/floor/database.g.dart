@@ -313,6 +313,12 @@ class _$TransactionDao extends TransactionDao {
     return _transactionModelDeletionAdapter
         .deleteAndReturnChangedRows(transaction);
   }
+
+  @override
+  Future<int> deleteTransactions(List<TransactionModel> transactions) {
+    return _transactionModelDeletionAdapter
+        .deleteListAndReturnChangedRows(transactions);
+  }
 }
 
 class _$CategoryDao extends CategoryDao {

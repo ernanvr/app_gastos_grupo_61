@@ -29,7 +29,7 @@ class TransactionCardWidget extends StatelessWidget {
         return TapTransactionOptionsWidget(
           transaction: transaction, // Pass the transaction object
           onTapDelete:
-              () => _confirmDelete(
+              () => _confirmDeleteTransaction(
                 context,
               ), // Pass a function that calls _confirmDelete
         );
@@ -38,7 +38,7 @@ class TransactionCardWidget extends StatelessWidget {
   }
 
   // Confirmar antes de eliminar - This method remains the same
-  void _confirmDelete(BuildContext context) {
+  void _confirmDeleteTransaction(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

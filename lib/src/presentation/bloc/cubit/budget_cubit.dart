@@ -102,12 +102,16 @@ class BudgetCubit extends Cubit<BudgetState> {
       // within the domain layer (e.g., the Usecase or Repository implementation).
       final result = await _deleteBudgetUsecase(budget);
       result.fold(
-        (failure) => emit(
-          state.copyWith(
-            status: BudgetStatus.error,
-            errorMessage: failure.message,
-          ),
-        ),
+        (failure) {
+          print('error');
+          print(failure);
+          emit(
+            state.copyWith(
+              status: BudgetStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
+        },
         (_) {
           // On successful deletion, reload budgets to update the list
           loadBudgets();

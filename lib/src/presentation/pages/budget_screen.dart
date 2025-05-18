@@ -6,15 +6,18 @@ import 'package:intl/intl.dart'; // Para formatear la fecha
 import 'package:go_router/go_router.dart'; // Importa go_router
 import 'package:app_gastos_grupo_61/src/domain/entities/budget.dart'; // Importa la entidad Budget
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_cubit.dart'; // Importa BudgetCubit
+import 'package:app_gastos_grupo_61/src/domain/entities/budget_with_balance.dart'; // Import BudgetWithBalance for editing
 
-class CreateBudgetScreen extends StatefulWidget {
-  const CreateBudgetScreen({super.key});
+class BudgetScreen extends StatefulWidget {
+  final BudgetWithBalance? budgetToEdit; // Optional parameter for editing
+
+  const BudgetScreen({super.key, this.budgetToEdit});
 
   @override
-  State<CreateBudgetScreen> createState() => _CreateBudgetScreenState();
+  State<BudgetScreen> createState() => _BudgetScreenState();
 }
 
-class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
+class _BudgetScreenState extends State<BudgetScreen> {
   // Clave global para el formulario, permite validar y guardar
   final _formKey = GlobalKey<FormState>();
   // Controladores para los campos de texto
@@ -25,8 +28,17 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   @override
   void initState() {
     super.initState();
-    // Opcional: pre-llenar la fecha actual al crear
-    _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    // If budgetToEdit is provided, pre-fill the form
+    if (widget.budgetToEdit != null) {
+      _descriptionController.text = widget.budgetToEdit!.description;
+      _amountController.text = widget.budgetToEdit!.initialAmount.toString();
+      _dateController.text = DateFormat(
+        'dd/MM/yyyy',
+      ).format(widget.budgetToEdit!.date);
+    } else {
+      // Opcional: pre-llenar la fecha actual al crear
+      _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    }
   }
 
   @override
@@ -42,10 +54,13 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   void _saveBudget() {
     // Valida el formulario. Si es válido, procede.
     if (_formKey.currentState!.validate()) {
-      // Crea una nueva instancia de Budget con los datos del formulario
-      final newBudget = Budget(
-        // El ID es null porque la base de datos lo generará al insertar
-        id: null,
+      // Determine if we are creating or updating
+      final isEditing = widget.budgetToEdit != null;
+
+      // Create a new Budget instance or update the existing one
+      final budget = Budget(
+        // Use existing ID if editing, otherwise null
+        id: isEditing ? widget.budgetToEdit!.id : null,
         description: _descriptionController.text,
         // Convierte el texto del monto a double
         initialAmount: double.parse(_amountController.text),
@@ -53,13 +68,21 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
         date: DateFormat('dd/MM/yyyy').parse(_dateController.text),
       );
 
-      // Accede al BudgetCubit y llama al método para agregar un presupuesto
-      // Usamos context.read para obtener el Cubit ya proporcionado en el árbol de widgets
-      context.read<BudgetCubit>().addBudget(newBudget);
+      if (isEditing) {
+        // Call the cubit method to update a budget
+        context.read<BudgetCubit>().editBudget(budget);
+      } else {
+        // Call the cubit method to add a new budget
+        context.read<BudgetCubit>().addBudget(budget);
+      }
 
-      // Navega a Home
-      // GoRouter pop() es la forma de regresar con go_router
-      context.replaceNamed('home');
+      // Navigate back to the previous screen (likely HomePageScreen)
+      // GoRouter pop() is the way to go back with go_router
+      if (isEditing) {
+        context.pop(); // Go back after editing
+      } else {
+        context.replaceNamed('home'); // Go to home after creating
+      }
 
       // Get a reference to the ScaffoldMessengerState
       final messenger = ScaffoldMessenger.of(context);
@@ -68,9 +91,14 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: SuccessNotificationWidget(
-            title: 'Presupuesto Creado',
+            title:
+                isEditing
+                    ? 'Presupuesto Actualizado'
+                    : 'Presupuesto Creado', // Dynamic title
             message:
-                'El presupuesto "${newBudget.description}" ha sido creado exitosamente.',
+                isEditing
+                    ? 'El presupuesto "${budget.description}" ha sido actualizado exitosamente.'
+                    : 'El presupuesto "${budget.description}" ha sido creado exitosamente.', // Dynamic message
             onClose: () => messenger.hideCurrentSnackBar(),
           ),
           backgroundColor:
@@ -109,7 +137,9 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Crear Presupuesto',
+                widget.budgetToEdit != null
+                    ? 'Editar Presupuesto'
+                    : 'Crear Presupuesto', // Dynamic title
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -194,7 +224,9 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
                   ),
                   onPressed: _saveBudget, // Llama al método para guardar
                   child: Text(
-                    'Guardar Presupuesto',
+                    widget.budgetToEdit != null
+                        ? 'Actualizar Presupuesto'
+                        : 'Guardar Presupuesto', // Dynamic button text
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       color: Colors.white,
@@ -262,6 +294,4 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       ),
     );
   }
-
-  // No necesitamos _buildDropdown ni _getCategoryId en esta pantalla
 }

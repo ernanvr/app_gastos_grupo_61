@@ -1,13 +1,14 @@
 import 'package:app_gastos_grupo_61/core/helpers/constants.dart';
-import 'package:app_gastos_grupo_61/core/utils/format_currency.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_state.dart'; // Import BudgetState
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/budget_details_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/transaction_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -87,20 +88,11 @@ class _HomePageScreenState extends State<HomePageScreen> {
         builder: (context, budgetState) {
           // Access the selected budget or handle the null case (should not happen due to Splash)
           final selectedBudget = budgetState.selectedBudget!;
-          // Get the budget amount
-          final budgetAmount = selectedBudget.balance;
 
           // Use BlocBuilder for TransactionCubit to get transactions and pie chart data
           return BlocBuilder<TransactionCubit, TransactionState>(
             builder: (context, transactionState) {
-              // Calculate total spent from transactions
-              final totalSpent = transactionState.transactions
-                  .where((t) => !t.isIncome) // Filter expenses
-                  .fold(0.0, (sum, t) => sum + t.amount);
-
-              // Calculate remaining
-
-              final remaining = budgetAmount - totalSpent;
+              final transactions = transactionState.transactions;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,85 +205,35 @@ class _HomePageScreenState extends State<HomePageScreen> {
                       ],
                     ),
                   ),
-                  Container(
-                    color: primaryColor,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // Display selected budget name
-                          selectedBudget.description,
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                  BudgetDetailsWidget(
+                    selectedBudget: selectedBudget,
+                    transactions: transactions,
+                    onDelete: (b, ts) {
+                      context.read<TransactionCubit>().deleteTransactions(ts);
+                      context.read<BudgetCubit>().deleteBudget(b);
+                      // Get a reference to the ScaffoldMessengerState
+                      final messenger = ScaffoldMessenger.of(context);
+                      // Show success notification after calling delete
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: SuccessNotificationWidget(
+                            title: 'Presupuesto Eliminado',
+                            message:
+                                'El presupuesto "${b.description}" ha sido eliminada exitosamente.',
+                            onClose: () => messenger.hideCurrentSnackBar(),
                           ),
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          duration: const Duration(seconds: 4),
+                          behavior: SnackBarBehavior.floating,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              // Display initial budget amount
-                              formatCurrency(budgetAmount),
-                              style: GoogleFonts.poppins(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            // TODO: Display budget period (e.g., Mensual) from the budget entity
-                            // Text(
-                            //   'Mensual', // Placeholder
-                            //   style: GoogleFonts.nunito(color: Colors.white),
-                            // ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Restante: ',
-                                  style: GoogleFonts.nunito(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  // Display remaining amount
-                                  formatCurrency(remaining),
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Total gastado: ',
-                                  style: GoogleFonts.nunito(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  // Display total spent amount
-                                  formatCurrency(totalSpent),
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                      // Navigate back to SplashScreen after budget is deleted
+                      // Use addPostFrameCallback to navigate after the current frame
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go('/');
+                      });
+                    },
                   ),
                   const SizedBox(height: 8),
                   Padding(

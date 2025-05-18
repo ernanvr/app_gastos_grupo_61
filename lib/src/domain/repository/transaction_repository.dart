@@ -12,4 +12,6 @@ abstract class TransactionRepository {
   ResultFuture<int> updateTransaction(Transaction transaction);
 
   ResultFuture<int> deleteTransaction(Transaction transaction);
+
+  ResultFuture<int> deleteTransactions(List<Transaction> transaction);
 }

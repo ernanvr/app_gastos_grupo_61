@@ -120,7 +120,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: SuccessNotificationWidget(
-              title: 'Transacción Creada',
+              title: 'Transacción actualizada',
               message:
                   'La transacción "${newTransaction.description}" ha sido creada exitosamente.',
               onClose: () => messenger.hideCurrentSnackBar(),

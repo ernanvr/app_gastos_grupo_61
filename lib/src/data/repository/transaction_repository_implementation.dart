@@ -63,4 +63,20 @@ class TransactionRepositoryImplementation implements TransactionRepository {
       return left(LocalDatabaseFailure(message: e.toString(), statusCode: 500));
     }
   }
+
+  @override
+  ResultFuture<int> deleteTransactions(List<Transaction> transactions) async {
+    try {
+      final models =
+          transactions
+              .map((transaction) => TransactionModel.fromEntity(transaction))
+              .toList();
+
+      final response = await localDatasource.deleteTransactions(models);
+
+      return right(response);
+    } catch (e) {
+      return left(LocalDatabaseFailure(message: e.toString(), statusCode: 500));
+    }
+  }
 }
