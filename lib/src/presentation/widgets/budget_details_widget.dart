@@ -60,10 +60,14 @@ class BudgetDetailsWidget extends StatelessWidget {
         .where((t) => !t.isIncome) // Filter expenses
         .fold(0.0, (sum, t) => sum + t.amount);
 
-    final budgetAmount = selectedBudget.balance;
-    final remaining = budgetAmount - totalSpent;
+    final totalIncome = transactions
+        .where((t) => t.isIncome) // Filter expenses
+        .fold(0.0, (sum, t) => sum + t.amount);
+
+    final totalBudget = selectedBudget.initialAmount + totalIncome;
+    final remaining = totalBudget - totalSpent;
     print('BudgetDetails selectedBudget.balance');
-    print(budgetAmount);
+    print(totalBudget);
     return GestureDetector(
       onTap: () => _showBudgetOptions(context),
       child: Container(
@@ -86,7 +90,7 @@ class BudgetDetailsWidget extends StatelessWidget {
               children: [
                 Text(
                   // Display initial budget amount
-                  formatCurrency(budgetAmount),
+                  formatCurrency(totalBudget),
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -95,7 +99,7 @@ class BudgetDetailsWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Disponible', // Placeholder
+                  'Presupuesto inicial + ingresos', // Placeholder
                   style: GoogleFonts.nunito(color: Colors.white),
                 ),
               ],
@@ -107,7 +111,7 @@ class BudgetDetailsWidget extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Restante: ',
+                      'Disponible: ',
                       style: GoogleFonts.nunito(color: Colors.white),
                     ),
                     Text(

@@ -61,7 +61,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     super.dispose();
   }
 
-  void _saveTransaction() {
+  void _saveTransaction() async {
     // Ensure budgetId is available for saving
     if (widget.budgetId == null) {
       // Handle error: budgetId is required
@@ -115,6 +115,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
         // Adding a new transaction
         context.read<TransactionCubit>().insertTransaction(newTransaction);
         // Get a reference to the ScaffoldMessengerState
+
+        context.read<BudgetCubit>().loadBudgets();
+
         final messenger = ScaffoldMessenger.of(context);
 
         // Show success notification for creation
@@ -128,13 +131,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
             ),
             backgroundColor: Colors.transparent,
             elevation: 0,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
         // Updating an existing transaction
         context.read<TransactionCubit>().updateTransaction(newTransaction);
+
+        context.read<BudgetCubit>().loadBudgets();
+
         // Get a reference to the ScaffoldMessengerState
         final messenger = ScaffoldMessenger.of(context);
 
@@ -205,7 +211,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     color: const Color(0xFF14181B),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 _buildDropdown(
                   label: 'Tipo',
                   value: _selectedType,
@@ -226,7 +232,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 _buildTextField(
                   controller: _nameController,
                   label: 'Nombre de la Transacción',
