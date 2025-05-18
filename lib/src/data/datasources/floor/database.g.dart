@@ -102,14 +102,14 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `budget` (`id` INTEGER, `description` TEXT NOT NULL, `initialAmount` REAL NOT NULL, `date` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `category` (`id` INTEGER, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `category` (`id` INTEGER, `name` TEXT NOT NULL, `isIncome` INTEGER NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `transactions` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, `isIncome` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `transactions` (`id` INTEGER, `categoryId` INTEGER NOT NULL, `budgetId` INTEGER NOT NULL, `description` TEXT NOT NULL, `amount` REAL NOT NULL, `date` INTEGER NOT NULL, FOREIGN KEY (`categoryId`) REFERENCES `category` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION, FOREIGN KEY (`budgetId`) REFERENCES `budget` (`id`) ON UPDATE NO ACTION ON DELETE CASCADE, PRIMARY KEY (`id`))');
 
         await database.execute(
-            'CREATE VIEW IF NOT EXISTS `budget_with_balance` AS   SELECT\n      B.id,\n      B.description,\n      B.initialAmount,\n      B.date,\n      B.initialAmount + COALESCE(SUM(CASE WHEN T.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance\n  FROM\n      budget AS B\n  LEFT JOIN\n      transactions AS T ON B.id = T.budgetId\n  GROUP BY\n      B.id, B.description, B.initialAmount, B.date;\n  ');
+            'CREATE VIEW IF NOT EXISTS `budget_with_balance` AS   SELECT\n      B.id,\n      B.description,\n      B.initialAmount,\n      B.date,\n      B.initialAmount + COALESCE(SUM(CASE WHEN C.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance\n  FROM\n      budget AS B\n  LEFT JOIN\n      transactions AS T ON B.id = T.budgetId\n  LEFT JOIN\n      category AS C ON T.categoryId = C.id\n  GROUP BY\n      B.id, B.description, B.initialAmount, B.date;\n  ');
         await database.execute(
-            'CREATE VIEW IF NOT EXISTS `transaction_with_category` AS   SELECT\n      T.id,\n      T.categoryId,\n      C.name AS categoryName, -- Seleccionamos el nombre de la categoría y lo renombramos\n      T.budgetId,\n      T.description,\n      T.amount,\n      T.date,\n      T.isIncome\n  FROM\n      transactions AS T -- Tabla de transacciones (alias T)\n  INNER JOIN\n      category AS C ON T.categoryId = C.id; -- Unimos con la tabla de categorías (alias C) donde el ID de la categoría coincide con el categoryId de la transacción. Usamos INNER JOIN porque una transacción debe tener una categoría asociada para aparecer en esta vista.\n  ');
+            'CREATE VIEW IF NOT EXISTS `transaction_with_category` AS   SELECT\n      T.id,\n      T.categoryId,\n      C.name AS categoryName, -- Seleccionamos el nombre de la categoría y lo renombramos\n      C.isIncome,\n      T.budgetId,\n      T.description,\n      T.amount,\n      T.date\n  FROM\n      transactions AS T -- Tabla de transacciones (alias T)\n  INNER JOIN\n      category AS C ON T.categoryId = C.id; -- Unimos con la tabla de categorías (alias C) donde el ID de la categoría coincide con el categoryId de la transacción. Usamos INNER JOIN porque una transacción debe tener una categoría asociada para aparecer en esta vista.\n  ');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -237,8 +237,7 @@ class _$TransactionDao extends TransactionDao {
                   'budgetId': item.budgetId,
                   'description': item.description,
                   'amount': item.amount,
-                  'date': _dateTimeConverter.encode(item.date),
-                  'isIncome': item.isIncome ? 1 : 0
+                  'date': _dateTimeConverter.encode(item.date)
                 }),
         _transactionModelUpdateAdapter = UpdateAdapter(
             database,
@@ -250,8 +249,7 @@ class _$TransactionDao extends TransactionDao {
                   'budgetId': item.budgetId,
                   'description': item.description,
                   'amount': item.amount,
-                  'date': _dateTimeConverter.encode(item.date),
-                  'isIncome': item.isIncome ? 1 : 0
+                  'date': _dateTimeConverter.encode(item.date)
                 }),
         _transactionModelDeletionAdapter = DeletionAdapter(
             database,
@@ -263,8 +261,7 @@ class _$TransactionDao extends TransactionDao {
                   'budgetId': item.budgetId,
                   'description': item.description,
                   'amount': item.amount,
-                  'date': _dateTimeConverter.encode(item.date),
-                  'isIncome': item.isIncome ? 1 : 0
+                  'date': _dateTimeConverter.encode(item.date)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -288,11 +285,11 @@ class _$TransactionDao extends TransactionDao {
             id: row['id'] as int?,
             categoryId: row['categoryId'] as int,
             categoryName: row['categoryName'] as String,
+            isIncome: (row['isIncome'] as int) != 0,
             budgetId: row['budgetId'] as int,
             description: row['description'] as String,
             amount: row['amount'] as double,
-            date: _dateTimeConverter.decode(row['date'] as int),
-            isIncome: (row['isIncome'] as int) != 0),
+            date: _dateTimeConverter.decode(row['date'] as int)),
         arguments: [id]);
   }
 
@@ -329,8 +326,11 @@ class _$CategoryDao extends CategoryDao {
         _categoryModelInsertionAdapter = InsertionAdapter(
             database,
             'category',
-            (CategoryModel item) =>
-                <String, Object?>{'id': item.id, 'name': item.name});
+            (CategoryModel item) => <String, Object?>{
+                  'id': item.id,
+                  'name': item.name,
+                  'isIncome': item.isIncome ? 1 : 0
+                });
 
   final sqflite.DatabaseExecutor database;
 
@@ -343,8 +343,10 @@ class _$CategoryDao extends CategoryDao {
   @override
   Future<List<CategoryModel>> getCategories() async {
     return _queryAdapter.queryList('Select * from category',
-        mapper: (Map<String, Object?> row) =>
-            CategoryModel(id: row['id'] as int?, name: row['name'] as String));
+        mapper: (Map<String, Object?> row) => CategoryModel(
+            id: row['id'] as int?,
+            name: row['name'] as String,
+            isIncome: (row['isIncome'] as int) != 0));
   }
 
   @override

@@ -40,10 +40,18 @@ Future<void> setupLocator() async {
   final existingCategoryNames =
       existingCategories.map((category) => category.name).toList();
 
-  for (var categoryName in defaultCategories) {
+  for (var categoryName in defaultSpendCategories) {
     if (!existingCategoryNames.contains(categoryName)) {
       await database.categoryDao.insertCategory(
-        CategoryModel(name: categoryName),
+        CategoryModel(name: categoryName, isIncome: false),
+      );
+    }
+  }
+
+  for (var categoryName in defaultIncomeCategories) {
+    if (!existingCategoryNames.contains(categoryName)) {
+      await database.categoryDao.insertCategory(
+        CategoryModel(name: categoryName, isIncome: true),
       );
     }
   }

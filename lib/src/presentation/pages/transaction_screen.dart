@@ -1,15 +1,14 @@
+import 'package:app_gastos_grupo_61/src/domain/entities/category.dart';
+import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
+import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
+import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/category_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../domain/entities/transaction.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Import flutter_bloc
-import '../bloc/cubit/transaction_cubit.dart'; // Import TransactionCubit
-import '../bloc/cubit/category_cubit.dart'; // Import CategoryCubit
-import '../bloc/cubit/category_state.dart'; // Import CategoryState
-import '../../domain/entities/category.dart'; // Import Category entity
 
 class TransactionScreen extends StatefulWidget {
   final TransactionWithCategory? transaction;
@@ -48,8 +47,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
           widget.transaction!.categoryName; // Use categoryName
       _selectedType = widget.transaction!.isIncome ? 'Ingreso' : 'Gasto';
     } else {
-      // Set initial date for new transactions
+      // Set initial date for new transactions and a default type
       _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+      _selectedType = 'Gasto'; // Default to 'Gasto' for new transactions
     }
   }
 
@@ -77,6 +77,29 @@ class _TransactionScreenState extends State<TransactionScreen> {
         (cat) => cat.name == _selectedCategoryName,
       );
 
+      final budgetCubit = context.read<BudgetCubit>();
+      if (budgetCubit.state.selectedBudget == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a budget first.')),
+        );
+        return;
+      }
+
+      // Check for sufficient budget balance if it's an expense
+      if (_selectedType == 'Gasto') {
+        final transactionAmount = double.parse(_amountController.text);
+        final budgetBalance = budgetCubit.state.selectedBudget!.balance;
+
+        if (transactionAmount > budgetBalance) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Insufficient budget balance for this expense.'),
+            ),
+          );
+          return; // Prevent saving the transaction
+        }
+      }
+
       final newTransaction = Transaction(
         // Use transaction ID if editing, otherwise null (database will assign new ID)
         id: widget.transaction?.id,
@@ -84,7 +107,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
         amount: double.parse(_amountController.text),
         date: DateFormat('dd/MM/yyyy').parse(_dateController.text),
         categoryId: selectedCategory.id!, // Use category ID
-        isIncome: _selectedType == 'Ingreso',
         budgetId: widget.budgetId!, // Use the provided budgetId
       );
 
@@ -183,6 +205,27 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     color: const Color(0xFF14181B),
                   ),
                 ),
+                const SizedBox(height: 10),
+                _buildDropdown(
+                  label: 'Tipo',
+                  value: _selectedType,
+                  items:
+                      _types
+                          .map(
+                            (item) => DropdownMenuItem<String>(
+                              value: item,
+                              child: Text(item),
+                            ),
+                          )
+                          .toList(), // Map strings to DropdownMenuItem
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedType = val;
+                      // Reset selected category when type changes
+                      _selectedCategoryName = null;
+                    });
+                  },
+                ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   controller: _nameController,
@@ -258,9 +301,20 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       _availableCategories =
                           state.categories; // Update available categories
 
-                      // Map categories to dropdown items
+                      // Filter categories based on selected type
+                      final filteredCategories =
+                          _availableCategories.where((cat) {
+                            if (_selectedType == 'Ingreso') {
+                              return cat.isIncome;
+                            } else {
+                              // Assuming 'Gasto'
+                              return !cat.isIncome;
+                            }
+                          }).toList();
+
+                      // Map filtered categories to dropdown items
                       final categoryItems =
-                          _availableCategories
+                          filteredCategories
                               .map(
                                 (cat) => DropdownMenuItem<String>(
                                   value: cat.name, // Use category name as value
@@ -269,15 +323,20 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               )
                               .toList();
 
-                      // Ensure the selected category is in the list if editing
-                      if (widget.transaction != null &&
-                          !_availableCategories.any(
+                      // Ensure the selected category is still valid after filtering
+                      if (_selectedCategoryName != null &&
+                          !filteredCategories.any(
                             (cat) => cat.name == _selectedCategoryName,
                           )) {
-                        // If the transaction's category is not in the loaded list (e.g., deleted), handle it
-                        // For now, we'll just ensure _selectedCategoryName is null if it's not valid.
-                        // A better approach might be to add the transaction's category if it's missing.
+                        // If the previously selected category is not in the filtered list, reset it
                         _selectedCategoryName = null;
+                      }
+
+                      // If no category is selected (e.g., on type change or new transaction)
+                      // and there are filtered categories, select the first one by default.
+                      if (_selectedCategoryName == null &&
+                          filteredCategories.isNotEmpty) {
+                        _selectedCategoryName = filteredCategories.first.name;
                       }
 
                       return _buildDropdown(
@@ -291,21 +350,6 @@ class _TransactionScreenState extends State<TransactionScreen> {
                       );
                     }
                   },
-                ),
-                const SizedBox(height: 10),
-                _buildDropdown(
-                  label: 'Tipo',
-                  value: _selectedType,
-                  items:
-                      _types
-                          .map(
-                            (item) => DropdownMenuItem<String>(
-                              value: item,
-                              child: Text(item),
-                            ),
-                          )
-                          .toList(), // Map strings to DropdownMenuItem
-                  onChanged: (val) => setState(() => _selectedType = val),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -435,9 +479,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
         ),
         items: items, // Use the provided list of items
         onChanged: onChanged,
-        validator:
-            (val) =>
-                val == null || val.isEmpty ? 'Seleccione una opción' : null,
+        validator: (val) => val == null ? 'Seleccione una opción' : null,
       ),
     );
   }

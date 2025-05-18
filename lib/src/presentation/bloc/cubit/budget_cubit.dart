@@ -22,6 +22,7 @@ class BudgetCubit extends Cubit<BudgetState> {
 
   Future<void> loadBudgets() async {
     try {
+      print('Triggering loadBudgets()');
       emit(state.copyWith(status: BudgetStatus.loading));
       final budgets = await _getBudgetsUsecase();
       budgets.fold(
@@ -76,18 +77,25 @@ class BudgetCubit extends Cubit<BudgetState> {
       emit(state.copyWith(status: BudgetStatus.loading));
       final result = await _updateBudgetUseCase(budget);
       result.fold(
-        (failure) => emit(
-          state.copyWith(
-            status: BudgetStatus.error,
-            errorMessage: failure.message,
-          ),
-        ),
+        (failure) {
+          print('Error at EditBudget');
+          print(failure);
+          emit(
+            state.copyWith(
+              status: BudgetStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
+        },
         (_) {
           // On successful update, reload budgets to update the list
+          print('Triggering EditBudget');
           loadBudgets();
         },
       );
     } catch (e) {
+      print('Error at EditBudget');
+      print(e);
       emit(
         state.copyWith(status: BudgetStatus.error, errorMessage: e.toString()),
       );
@@ -103,8 +111,6 @@ class BudgetCubit extends Cubit<BudgetState> {
       final result = await _deleteBudgetUsecase(budget);
       result.fold(
         (failure) {
-          print('error');
-          print(failure);
           emit(
             state.copyWith(
               status: BudgetStatus.error,

@@ -9,7 +9,6 @@ class Transaction extends Equatable {
     required this.description,
     required this.amount,
     required this.date,
-    required this.isIncome,
   });
 
   // Propiedades
@@ -19,16 +18,8 @@ class Transaction extends Equatable {
   final String description;
   final double amount;
   final DateTime date;
-  final bool isIncome;
 
   // Equatable override para comparación
   @override
-  List<Object?> get props => [
-    id,
-    categoryId,
-    description,
-    amount,
-    date,
-    isIncome,
-  ];
+  List<Object?> get props => [id, categoryId, description, amount, date];
 }

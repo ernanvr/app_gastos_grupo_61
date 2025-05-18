@@ -6,11 +6,11 @@ import 'package:floor/floor.dart';
       T.id,
       T.categoryId,
       C.name AS categoryName, -- Seleccionamos el nombre de la categoría y lo renombramos
+      C.isIncome,
       T.budgetId,
       T.description,
       T.amount,
-      T.date,
-      T.isIncome
+      T.date
   FROM
       transactions AS T -- Tabla de transacciones (alias T)
   INNER JOIN
@@ -21,10 +21,10 @@ class TransactionWithCategoryModel extends TransactionWithCategory {
     super.id,
     required super.categoryId,
     required super.categoryName,
+    required super.isIncome,
     required super.budgetId,
     required super.description,
     required super.amount,
     required super.date,
-    required super.isIncome,
   });
 }

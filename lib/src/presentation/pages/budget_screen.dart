@@ -70,9 +70,13 @@ class _BudgetScreenState extends State<BudgetScreen> {
 
       if (isEditing) {
         // Call the cubit method to update a budget
+        print('editBudget from BudgetScreen save');
+        print(budget);
         context.read<BudgetCubit>().editBudget(budget);
       } else {
         // Call the cubit method to add a new budget
+        print('AddBudget from BudgetScreen save');
+        print(budget);
         context.read<BudgetCubit>().addBudget(budget);
       }
 

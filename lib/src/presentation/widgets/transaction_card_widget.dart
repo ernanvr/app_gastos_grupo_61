@@ -125,7 +125,7 @@ class TransactionCardWidget extends StatelessWidget {
                   ),
                   Text(
                     // Display formatted date and time
-                    DateFormat('E. d, HH:mm').format(transaction.date),
+                    DateFormat('d/M/y').format(transaction.date),
                     style: GoogleFonts.nunito(
                       color: const Color(0xFF95A1AC),
                       fontSize: 12,

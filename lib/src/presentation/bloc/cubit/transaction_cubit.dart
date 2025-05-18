@@ -11,6 +11,8 @@ import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
 
 import 'transaction_state.dart'; // Assuming your state file is named this
 
+enum TransactionType { income, expense }
+
 class TransactionCubit extends Cubit<TransactionState> {
   TransactionCubit(
     this._getTransactionsByBudgetIdUsecase,
@@ -32,6 +34,7 @@ class TransactionCubit extends Cubit<TransactionState> {
       final transactionsResult = await _getTransactionsByBudgetIdUsecase(
         budgetId,
       );
+
       transactionsResult.fold(
         (failure) => emit(
           state.copyWith(
@@ -40,33 +43,56 @@ class TransactionCubit extends Cubit<TransactionState> {
           ),
         ),
         (transactions) {
-          Map<String, double> categorySpend = {};
+          Map<String, double> expenseCategorySpend = {};
+          Map<String, double> incomeCategorySpend = {};
 
           for (final transaction in transactions) {
-            // Assuming TransactionWithCategory has a 'category' field with a 'name' property and an 'amount' property
             final categoryName = transaction.categoryName;
             final amount = transaction.amount; // Get the transaction amount
 
-            // Sum the amounts for each category
-            categorySpend.update(
-              categoryName,
-              (value) => value + amount,
-              ifAbsent: () => amount,
-            );
+            if (!transaction.isIncome) {
+              // Sum the amounts for each expense category
+              expenseCategorySpend.update(
+                categoryName,
+                (value) => value + amount,
+                ifAbsent: () => amount,
+              );
+            } else {
+              // Sum the amounts for each income category
+              incomeCategorySpend.update(
+                categoryName,
+                (value) => value + amount,
+                ifAbsent: () => amount,
+              );
+            }
           }
 
-          // Convert the map to a List of PieChartValues objects
-          final List<PieChartValue> pieChartValues =
-              categorySpend.entries.map((entry) {
+          // Convert the expense map to a List of PieChartValues objects
+          final List<PieChartValue> expensesPieChartValues =
+              expenseCategorySpend.entries.map((entry) {
                 // Pass the category name (key) and the total spend (value)
-                return PieChartValue(entry.key, entry.value.toInt()); // Convert double spend to int if PieChartValue.spend is int
+                return PieChartValue(
+                  entry.key,
+                  entry.value.toInt(),
+                ); // Convert double spend to int if PieChartValue.spend is int
+              }).toList();
+
+          // Convert the income map to a List of PieChartValues objects
+          final List<PieChartValue> incomesPieChartValues =
+              incomeCategorySpend.entries.map((entry) {
+                // Pass the category name (key) and the total spend (value)
+                return PieChartValue(
+                  entry.key,
+                  entry.value.toInt(),
+                ); // Convert double spend to int if PieChartValue.spend is int
               }).toList();
 
           emit(
             state.copyWith(
               status: TransactionStatus.loaded,
               transactions: transactions,
-              pieChartValues: pieChartValues,
+              expensesPieChartValues: expensesPieChartValues,
+              incomesPieChartValues: incomesPieChartValues,
             ),
           );
         },
@@ -172,7 +198,11 @@ class TransactionCubit extends Cubit<TransactionState> {
         ),
         (_) {
           // On successful deletion, reload transactions for the current budget
-          // loadTransactionsByBudgetId(transactions.first.budgetId);
+          // and also reload budgets to update the balance.
+          // Assuming all transactions in the list belong to the same budget.
+          if (transactions.isNotEmpty) {
+            loadTransactionsByBudgetId(transactions.first.budgetId);
+          }
         },
       );
     } catch (e) {

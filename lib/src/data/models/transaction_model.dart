@@ -28,7 +28,6 @@ class TransactionModel extends Transaction {
     required super.description,
     required super.amount,
     required super.date,
-    required super.isIncome,
   });
 
   factory TransactionModel.fromEntity(Transaction entity) {
@@ -39,7 +38,6 @@ class TransactionModel extends Transaction {
       description: entity.description,
       amount: entity.amount,
       date: entity.date,
-      isIncome: entity.isIncome,
     );
   }
 }

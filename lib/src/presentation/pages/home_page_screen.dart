@@ -1,4 +1,5 @@
 import 'package:app_gastos_grupo_61/core/helpers/app_theme.dart';
+import 'package:app_gastos_grupo_61/core/helpers/classes.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_state.dart'; // Import BudgetState
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
@@ -20,6 +21,9 @@ class HomePageScreen extends StatefulWidget {
 }
 
 class _HomePageScreenState extends State<HomePageScreen> {
+  TransactionType _selectedTransactionType =
+      TransactionType.expense; // Add state variable
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +64,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: primaryColor,
         onPressed: () {
-          final budgetState = context.read<BudgetCubit>().state;
+          final budgetState = context.watch<BudgetCubit>().state;
           final selectedBudgetId = budgetState.selectedBudget?.id;
 
           if (selectedBudgetId != null) {
@@ -71,6 +75,10 @@ class _HomePageScreenState extends State<HomePageScreen> {
                 builder:
                     (context) => TransactionScreen(budgetId: selectedBudgetId),
               ),
+            );
+            // After returning from TransactionScreen, reload transactions
+            context.read<TransactionCubit>().loadTransactionsByBudgetId(
+              selectedBudgetId,
             );
           } else {
             // Handle case where no budget is selected (should not happen based on Splash logic)
@@ -101,7 +109,14 @@ class _HomePageScreenState extends State<HomePageScreen> {
       // Use BlocBuilder for BudgetCubit to get the selected budget
       body: BlocBuilder<BudgetCubit, BudgetState>(
         builder: (context, budgetState) {
-          // Access the selected budget or handle the null case (should not happen due to Splash)
+          // Handle the case where no budget is selected yet
+          if (budgetState.selectedBudget == null) {
+            return const Center(
+              child: CircularProgressIndicator(), // Or a message
+            );
+          }
+
+          // Access the selected budget
           final selectedBudget = budgetState.selectedBudget!;
 
           // Use BlocBuilder for TransactionCubit to get transactions and pie chart data
@@ -109,15 +124,19 @@ class _HomePageScreenState extends State<HomePageScreen> {
             builder: (context, transactionState) {
               final transactions = transactionState.transactions;
 
+              // Determine which data to display based on the selected type
+              final List<PieChartValue> currentPieChartValues =
+                  _selectedTransactionType == TransactionType.expense
+                      ? transactionState.expensesPieChartValues
+                      : transactionState.incomesPieChartValues;
+
               // Prepare data for AppPieChart
               List<double> pieValues =
-                  transactionState.pieChartValues
-                      .map((e) => e.spend.toDouble())
-                      .toList();
+                  currentPieChartValues.map((e) => e.spend.toDouble()).toList();
 
               // Use the theme colors for the pie chart
               final List<Color> pieColors =
-                  transactionState.pieChartValues.asMap().entries.map((entry) {
+                  currentPieChartValues.asMap().entries.map((entry) {
                     final index = entry.key;
                     return themePieChartColors[index %
                         themePieChartColors.length];
@@ -184,7 +203,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
               // --- End: Adjust pie chart percentages ---
               //Dynamic radius
               final List<double> pieRadius =
-                  transactionState.pieChartValues.map((e) {
+                  currentPieChartValues.map((e) {
                     // Define a minimum and maximum radius
                     const double minRadius = 30.0;
                     const double maxRadius = 80.0;
@@ -199,7 +218,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                   }).toList();
 
               final List<LegendEntry> legendEntries =
-                  transactionState.pieChartValues.asMap().entries.map((entry) {
+                  currentPieChartValues.asMap().entries.map((entry) {
                     final index = entry.key;
                     final pieValue = entry.value;
                     final color =
@@ -217,11 +236,16 @@ class _HomePageScreenState extends State<HomePageScreen> {
               );
 
               return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     color: const Color(0xFFCCDBFD),
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.only(
+                      left: 24.0,
+                      bottom: 16,
+                      top: 4,
+                      right: 16,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -229,6 +253,30 @@ class _HomePageScreenState extends State<HomePageScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Padding(
+                                // Add padding for the dropdown
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: DropdownButton<TransactionType>(
+                                  value: _selectedTransactionType,
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: TransactionType.expense,
+                                      child: Text('Gastos'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: TransactionType.income,
+                                      child: Text('Ingresos'),
+                                    ),
+                                  ],
+                                  onChanged: (TransactionType? newValue) {
+                                    if (newValue != null) {
+                                      setState(() {
+                                        _selectedTransactionType = newValue;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
                               // Text(
                               //   'Resumen de gastos',
                               //   style: GoogleFonts.poppins(
@@ -246,46 +294,55 @@ class _HomePageScreenState extends State<HomePageScreen> {
                               //   ),
                               // ),
                               // const SizedBox(height: 16),
-                              SizedBox(
-                                height: 200,
-                                child:
-                                    transactionState.status ==
-                                            TransactionStatus.loading
-                                        ? const Center(
-                                          child: CircularProgressIndicator(),
-                                        )
-                                        : transactionState
-                                            .pieChartValues
-                                            .isEmpty
-                                        ? Center(
-                                          child: Text(
-                                            'No hay datos para el gráfico de resumen.',
-                                            style: GoogleFonts.nunito(
-                                              fontSize: 16,
-                                              color: const Color(0xFF57636C),
-                                            ),
-                                          ),
-                                        )
-                                        : AppPieChart(
-                                          // Use AppPieChart here
-                                          data: customPieChartData,
-                                          donutHoleRadius:
-                                              40, // Adjust as needed
-                                          sectionLabelType:
-                                              PieChartSectionLabelType
-                                                  .percent, // Or .value
-                                          sectionLabelStyle:
-                                              GoogleFonts.poppins(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black,
+                              const SizedBox(
+                                width: 16.0,
+                              ), // Add horizontal spacing
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 16.0,
+                                ), // Add padding to the left
+                                child: SizedBox(
+                                  width: 150,
+                                  height: 175,
+                                  child:
+                                      transactionState.status ==
+                                              TransactionStatus.loading
+                                          ? const Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                          : transactionState
+                                              .expensesPieChartValues
+                                              .isEmpty
+                                          ? Center(
+                                            child: Text(
+                                              'No hay datos para el gráfico de resumen.',
+                                              style: GoogleFonts.nunito(
+                                                fontSize: 16,
+                                                color: const Color(0xFF57636C),
                                               ),
-                                        ),
+                                            ),
+                                          )
+                                          : AppPieChart(
+                                            // Use AppPieChart here
+                                            data: customPieChartData,
+                                            donutHoleRadius:
+                                                20, // Adjust as needed
+                                            sectionLabelType:
+                                                PieChartSectionLabelType
+                                                    .percent, // Or .value
+                                            sectionLabelStyle:
+                                                GoogleFonts.poppins(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                          ),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16.0), // Add horizontal spacing
+                        const SizedBox(width: 36.0), // Add horizontal spacing
                         Expanded(
                           child: AppChartLegendWidget(
                             // Add the legend widget
@@ -369,6 +426,7 @@ class _HomePageScreenState extends State<HomePageScreen> {
                                     context
                                         .read<TransactionCubit>()
                                         .deleteTransaction(t);
+
                                     // Get a reference to the ScaffoldMessengerState
                                     final messenger = ScaffoldMessenger.of(
                                       context,

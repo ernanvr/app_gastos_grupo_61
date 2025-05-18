@@ -2,6 +2,7 @@ import 'package:app_gastos_grupo_61/core/helpers/constants.dart';
 import 'package:app_gastos_grupo_61/core/utils/format_currency.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/budget_with_balance.dart';
 import 'package:app_gastos_grupo_61/src/domain/entities/transaction.dart';
+import 'package:app_gastos_grupo_61/src/domain/entities/transaction_with_category.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/delete_confirmation_message_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/tap_budget_options_widget.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class BudgetDetailsWidget extends StatelessWidget {
   });
 
   final BudgetWithBalance selectedBudget;
-  final List<Transaction> transactions;
+  final List<TransactionWithCategory> transactions;
   final void Function(BudgetWithBalance, List<Transaction>) onDelete;
 
   // Mostrar opciones del presupuesto
@@ -61,6 +62,8 @@ class BudgetDetailsWidget extends StatelessWidget {
 
     final budgetAmount = selectedBudget.balance;
     final remaining = budgetAmount - totalSpent;
+    print('BudgetDetails selectedBudget.balance');
+    print(budgetAmount);
     return GestureDetector(
       onTap: () => _showBudgetOptions(context),
       child: Container(
@@ -91,11 +94,10 @@ class BudgetDetailsWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // TODO: Display budget period (e.g., Mensual) from the budget entity
-                // Text(
-                //   'Mensual', // Placeholder
-                //   style: GoogleFonts.nunito(color: Colors.white),
-                // ),
+                Text(
+                  'Disponible', // Placeholder
+                  style: GoogleFonts.nunito(color: Colors.white),
+                ),
               ],
             ),
             const SizedBox(height: 8),

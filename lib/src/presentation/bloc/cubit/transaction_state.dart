@@ -10,25 +10,29 @@ class TransactionState {
     this.status = TransactionStatus.initial,
     this.transactions = const [],
     this.errorMessage,
-    this.pieChartValues = const [],
+    this.expensesPieChartValues = const [],
+    this.incomesPieChartValues = const [],
   });
 
   final TransactionStatus status;
   final List<TransactionWithCategory> transactions;
   final String? errorMessage;
-  final List<PieChartValue> pieChartValues;
+  final List<PieChartValue> expensesPieChartValues;
+  final List<PieChartValue> incomesPieChartValues;
 
   TransactionState copyWith({
     TransactionStatus? status,
     List<TransactionWithCategory>? transactions,
     String? errorMessage,
-    List<PieChartValue>? pieChartValues,
+    List<PieChartValue>? expensesPieChartValues,
+    List<PieChartValue>? incomesPieChartValues,
   }) {
     return TransactionState(
       status: status ?? this.status,
       transactions: transactions ?? this.transactions,
       errorMessage: errorMessage ?? this.errorMessage,
-      pieChartValues: pieChartValues ?? this.pieChartValues,
+      expensesPieChartValues: expensesPieChartValues ?? this.expensesPieChartValues,
+      incomesPieChartValues: incomesPieChartValues ?? this.incomesPieChartValues,
     );
   }
 }

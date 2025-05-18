@@ -28,11 +28,13 @@ class UpdateBudgetUseCase extends UseCaseWithParams<int, Budget> {
       }
 
       final response = await repository.getBudgetById(budget.id!);
+      print('Response from UpdateBudgetUsecase, getBudgetById');
+      print(response);
       final oldBudget = response.fold((f) => throw f, (oldBudget) => oldBudget);
 
       final newBalanceIsGreaterThanZero =
-          0 >=
-          oldBudget.balance - oldBudget.initialAmount - budget.initialAmount;
+          budget.initialAmount - oldBudget.initialAmount + oldBudget.balance >=
+              0;
 
       if (!newBalanceIsGreaterThanZero) {
         throw ValidationError(

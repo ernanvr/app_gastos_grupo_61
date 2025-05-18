@@ -7,11 +7,13 @@ import 'package:floor/floor.dart';
       B.description,
       B.initialAmount,
       B.date,
-      B.initialAmount + COALESCE(SUM(CASE WHEN T.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance
+      B.initialAmount + COALESCE(SUM(CASE WHEN C.isIncome = 1 THEN T.amount ELSE -T.amount END), 0) AS balance
   FROM
       budget AS B
   LEFT JOIN
       transactions AS T ON B.id = T.budgetId
+  LEFT JOIN
+      category AS C ON T.categoryId = C.id
   GROUP BY
       B.id, B.description, B.initialAmount, B.date;
   ''', viewName: 'budget_with_balance')
