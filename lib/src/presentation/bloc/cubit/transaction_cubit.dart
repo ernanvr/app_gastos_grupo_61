@@ -40,19 +40,26 @@ class TransactionCubit extends Cubit<TransactionState> {
           ),
         ),
         (transactions) {
-          Map<String, int> categoryCounts = {};
+          Map<String, double> categorySpend = {};
 
           for (final transaction in transactions) {
-            // Assuming TransactionWithCategory has a 'category' field with a 'name' property
+            // Assuming TransactionWithCategory has a 'category' field with a 'name' property and an 'amount' property
             final categoryName = transaction.categoryName;
-            categoryCounts[categoryName] =
-                (categoryCounts[categoryName] ?? 0) + 1;
+            final amount = transaction.amount; // Get the transaction amount
+
+            // Sum the amounts for each category
+            categorySpend.update(
+              categoryName,
+              (value) => value + amount,
+              ifAbsent: () => amount,
+            );
           }
 
           // Convert the map to a List of PieChartValues objects
           final List<PieChartValue> pieChartValues =
-              categoryCounts.entries.map((entry) {
-                return PieChartValue(entry.key, entry.value);
+              categorySpend.entries.map((entry) {
+                // Pass the category name (key) and the total spend (value)
+                return PieChartValue(entry.key, entry.value.toInt()); // Convert double spend to int if PieChartValue.spend is int
               }).toList();
 
           emit(

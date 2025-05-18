@@ -1,16 +1,16 @@
-import 'package:app_gastos_grupo_61/core/helpers/constants.dart';
+import 'package:app_gastos_grupo_61/core/helpers/app_theme.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/blocs.dart';
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/budget_state.dart'; // Import BudgetState
 import 'package:app_gastos_grupo_61/src/presentation/bloc/cubit/transaction_state.dart';
 import 'package:app_gastos_grupo_61/src/presentation/pages/transaction_screen.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/budget_details_widget.dart';
+import 'package:app_gastos_grupo_61/src/presentation/widgets/piechart_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/success_notification_widget.dart';
 import 'package:app_gastos_grupo_61/src/presentation/widgets/transaction_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 class HomePageScreen extends StatefulWidget {
   const HomePageScreen({super.key});
@@ -39,6 +39,21 @@ class _HomePageScreenState extends State<HomePageScreen> {
     // Define colors here
     const primaryColor = Color(0xFF3F37C9);
     const backgroundColor = Color(0xFFF6FFF8);
+    // Access the current theme
+    final theme = AppTheme.of(context);
+
+    // Define a list of theme colors to use for the pie chart
+    final List<Color> themePieChartColors = [
+      theme.primary,
+      theme.accent1,
+      theme.tertiary,
+      theme.alternate,
+      theme.secondary,
+      theme.accent2,
+      theme.accent3,
+      theme.accent4,
+      // Add more colors from your theme as needed to ensure enough variety
+    ];
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -94,113 +109,194 @@ class _HomePageScreenState extends State<HomePageScreen> {
             builder: (context, transactionState) {
               final transactions = transactionState.transactions;
 
+              // Prepare data for AppPieChart
+              List<double> pieValues =
+                  transactionState.pieChartValues
+                      .map((e) => e.spend.toDouble())
+                      .toList();
+
+              // Use the theme colors for the pie chart
+              final List<Color> pieColors =
+                  transactionState.pieChartValues.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    return themePieChartColors[index %
+                        themePieChartColors.length];
+                  }).toList();
+
+              // Calculate the total spend to normalize the radius
+              final double totalSpend = pieValues.fold(
+                0.0,
+                (sum, item) => sum + item,
+              );
+
+              // --- Start: Adjust pie chart percentages to sum to 100 ---
+              // This block calculates raw percentages, rounds them, identifies
+              // any difference from 100% due to rounding, and adjusts one slice's
+              // rounded percentage to make the total sum exactly 100.
+              // The pieValues list is then updated to contain these adjusted
+              // rounded percentages, which the chart will use for proportions
+              // and labels.
+              if (totalSpend > 0) {
+                // 1. Calculate raw percentages based on original values
+                final List<double> rawPercentages =
+                    pieValues
+                        .map((value) => (value / totalSpend) * 100.0)
+                        .toList();
+
+                // 2. Round percentages to the nearest integer (assuming 0 decimal places for display)
+                final List<int> roundedPercentages =
+                    rawPercentages
+                        .map((percentage) => percentage.round())
+                        .toList();
+
+                // 3. Calculate the current sum of rounded percentages
+                final int sumRounded = roundedPercentages.fold(
+                  0,
+                  (sum, percentage) => sum + percentage,
+                );
+
+                // 4. Calculate the difference from 100
+                final int difference = 100 - sumRounded;
+
+                // 5. If there is a difference, apply it to the slice
+                //    with the largest raw percentage to minimize visual distortion.
+                if (difference != 0) {
+                  int maxIndex = 0;
+                  double maxRawPercentage =
+                      -1.0; // Find index of largest raw percentage
+                  for (int i = 0; i < rawPercentages.length; i++) {
+                    if (rawPercentages[i] > maxRawPercentage) {
+                      maxRawPercentage = rawPercentages[i];
+                      maxIndex = i;
+                    }
+                    // Note: Handling ties by picking the first occurrence is implicit here.
+                  }
+                  // Adjust the rounded percentage at the max index
+                  roundedPercentages[maxIndex] += difference;
+                }
+
+                // 6. Update pieValues to be the adjusted rounded percentages.
+                //    The chart will now use these adjusted values for proportions and labels.
+                //    Convert int percentages back to double as required by CustomPieChartData.
+                pieValues =
+                    roundedPercentages.map((p) => p.toDouble()).toList();
+              }
+              // --- End: Adjust pie chart percentages ---
+              //Dynamic radius
+              final List<double> pieRadius =
+                  transactionState.pieChartValues.map((e) {
+                    // Define a minimum and maximum radius
+                    const double minRadius = 30.0;
+                    const double maxRadius = 80.0;
+
+                    // Calculate a proportional radius. Avoid division by zero if totalSpend is 0.
+                    final double normalizedSpend =
+                        totalSpend > 0 ? e.spend / totalSpend : 0.0;
+                    final double dynamicRadius =
+                        minRadius + (maxRadius - minRadius) * normalizedSpend;
+
+                    return dynamicRadius;
+                  }).toList();
+
+              final List<LegendEntry> legendEntries =
+                  transactionState.pieChartValues.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final pieValue = entry.value;
+                    final color =
+                        themePieChartColors[index % themePieChartColors.length];
+                    return LegendEntry(
+                      color,
+                      pieValue.categoryName,
+                    ); // Use categoryName for legend
+                  }).toList();
+
+              final customPieChartData = CustomPieChartData(
+                values: pieValues,
+                colors: pieColors,
+                radius: pieRadius,
+              );
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
                     color: const Color(0xFFCCDBFD),
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Text(
-                        //   'Resumen de gastos',
-                        //   style: GoogleFonts.poppins(
-                        //     fontSize: 20,
-                        //     fontWeight: FontWeight.bold,
-                        //     color: const Color(0xFF14181B),
-                        //   ),
-                        // ),
-                        // const SizedBox(height: 4),
-                        // Text(
-                        //   'Su actividad reciente se divide en:',
-                        //   style: GoogleFonts.nunito(
-                        //     color: const Color(0xFF95A1AC),
-                        //     fontSize: 14,
-                        //   ),
-                        // ),
-                        // const SizedBox(height: 16),
-                        SizedBox(
-                          height: 200,
-                          child:
-                              transactionState.status ==
-                                      TransactionStatus.loading
-                                  ? const Center(
-                                    child: CircularProgressIndicator(),
-                                  )
-                                  : transactionState.pieChartValues.isEmpty
-                                  ? Center(
-                                    child: Text(
-                                      'No hay datos para el gráfico de resumen.',
-                                      style: GoogleFonts.nunito(
-                                        fontSize: 16,
-                                        color: const Color(0xFF57636C),
-                                      ),
-                                    ),
-                                  )
-                                  : PieChart(
-                                    PieChartData(
-                                      sections:
-                                          transactionState.pieChartValues
-                                              .asMap()
-                                              .entries
-                                              .map((entry) {
-                                                final index = entry.key;
-                                                final pieValue = entry.value;
-                                                final totalQty =
-                                                    transactionState
-                                                        .pieChartValues
-                                                        .fold(
-                                                          0,
-                                                          (sum, item) =>
-                                                              sum + item.qty,
-                                                        );
-                                                final percentage =
-                                                    totalQty > 0
-                                                        ? (pieValue.qty /
-                                                                totalQty) *
-                                                            100
-                                                        : 0.0;
-                                                final color =
-                                                    pieChartColors[index %
-                                                        pieChartColors.length];
-
-                                                return PieChartSectionData(
-                                                  value: percentage,
-                                                  color: color,
-                                                  title:
-                                                      totalQty > 0
-                                                          ? '${percentage.toStringAsFixed(0)}%'
-                                                          : '',
-                                                  radius: 50,
-                                                  titleStyle:
-                                                      GoogleFonts.poppins(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.black,
-                                                      ),
-                                                  titlePositionPercentageOffset:
-                                                      1.55, // Adjust title position to avoid overlapping with pie chart
-                                                  badgeWidget: Text(
-                                                    // Add category name as a badge
-                                                    pieValue.categoryName,
-                                                    style: GoogleFonts.nunito(
-                                                      fontSize: 10,
-                                                      color: const Color(
-                                                        0xFF14181B,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  badgePositionPercentageOffset:
-                                                      1.2, // Adjust badge position
-                                                );
-                                              })
-                                              .toList(),
-                                      sectionsSpace: 2,
-                                      centerSpaceRadius: 40,
-                                    ),
-                                  ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Text(
+                              //   'Resumen de gastos',
+                              //   style: GoogleFonts.poppins(
+                              //     fontSize: 20,
+                              //     fontWeight: FontWeight.bold,
+                              //     color: const Color(0xFF14181B),
+                              //   ),
+                              // ),
+                              // const SizedBox(height: 4),
+                              // Text(
+                              //   'Su actividad reciente se divide en:',
+                              //   style: GoogleFonts.nunito(
+                              //     color: const Color(0xFF95A1AC),
+                              //     fontSize: 14,
+                              //   ),
+                              // ),
+                              // const SizedBox(height: 16),
+                              SizedBox(
+                                height: 200,
+                                child:
+                                    transactionState.status ==
+                                            TransactionStatus.loading
+                                        ? const Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                        : transactionState
+                                            .pieChartValues
+                                            .isEmpty
+                                        ? Center(
+                                          child: Text(
+                                            'No hay datos para el gráfico de resumen.',
+                                            style: GoogleFonts.nunito(
+                                              fontSize: 16,
+                                              color: const Color(0xFF57636C),
+                                            ),
+                                          ),
+                                        )
+                                        : AppPieChart(
+                                          // Use AppPieChart here
+                                          data: customPieChartData,
+                                          donutHoleRadius:
+                                              40, // Adjust as needed
+                                          sectionLabelType:
+                                              PieChartSectionLabelType
+                                                  .percent, // Or .value
+                                          sectionLabelStyle:
+                                              GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                        ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16.0), // Add horizontal spacing
+                        Expanded(
+                          child: AppChartLegendWidget(
+                            // Add the legend widget
+                            entries:
+                                legendEntries, // <-- Here is where you place it
+                            textStyle: GoogleFonts.nunito(
+                              fontSize: 14,
+                              color: const Color(0xFF14181B),
+                            ),
+                            indicatorSize: 12,
+                          ),
                         ),
                       ],
                     ),

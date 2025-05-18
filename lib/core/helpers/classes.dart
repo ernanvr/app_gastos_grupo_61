@@ -10,7 +10,7 @@ abstract class UseCaseWithoutParams<Type> {
 
 class PieChartValue {
   String categoryName;
-  int qty;
+  int spend;
 
-  PieChartValue(this.categoryName, this.qty);
+  PieChartValue(this.categoryName, this.spend);
 }

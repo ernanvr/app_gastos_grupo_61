@@ -4,4 +4,5 @@
 - [x] Implementar Editar presupuesto
 - [x] Implementar Eliminar presupuesto
 - [x] Cambiar la estructura de los cubits, para usar los usecases en vez de los repositories
+- [x] Corregir el Pie Chart
 - [ ] Cambiar las entidades categoría y transacción
